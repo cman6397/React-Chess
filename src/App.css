@@ -1,0 +1,26 @@
+
+.square{
+  width:45px;
+  height:45px;
+  border: none;
+}
+.square:focus {outline:0;}
+
+.light{
+  background-color: #e0ddeb;
+}
+.dark {
+  background-color: #476899;
+}
+.board_row {
+  margin-top: -1px;
+}
+
+.game_container {
+  margin:100px;
+  width:360px;
+  height:359px;
+  border: 2px solid;
+  padding-top:1px;
+}
+
