@@ -13,14 +13,29 @@
   background-color: #476899;
 }
 .board_row {
-  margin-top: -1px;
+  font-size:0;
+  display:inline-block;
 }
 
-.game_container {
-  margin:100px;
+.board_container {
   width:360px;
-  height:359px;
+  height:360px;
   border: 2px solid;
-  padding-top:1px;
+  margin-left:70px ;
+  margin-top:70px ;
+  position:absolute;
+}
+.game_container {
+  height: 500px;
+  width:500px;
+  margin:100px;
+  text-align:center;
+}
+
+.back_button {
+  height: 25px;
+  width: 50px;
+  float:right;
+  margin:10px;
 }
 
