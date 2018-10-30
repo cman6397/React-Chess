@@ -14,50 +14,53 @@ class Chess extends Component {
     const history = this.state.history.slice();
     let player = this.state.player;
 
-    if (history.length == 1) {
+    if (history.length === 1) {
       return;
     }
     history.pop();
-    (player == 'white') ? player = 'black' : player = 'white';
+    (player === 'white') ? player = 'black' : player = 'white';
 
     this.setState({
       history: history,
       player:player
     });
   }
-    handle_click(i) {
-      const history = this.state.history.slice();
-      const squares = history[history.length - 1].squares.slice();
-      let click_start = this.state.click_start;
-      let piece_start = null;
-      let current_piece = squares[i];
-      let player = this.state.player;
+  drag_start(id) {
+    alert(id)
+  }
+  handle_click(i) {
+    const history = this.state.history.slice();
+    const squares = history[history.length - 1].squares.slice();
+    let click_start = this.state.click_start;
+    let piece_start = null;
+    let current_piece = squares[i];
+    let player = this.state.player;
 
-      //Set clicked piece to the piece to move if clicked square is a piece and no piece has been clicked
-      if (click_start == null & current_piece != null) {
-        if (current_piece.player == player){
-          this.setState({click_start: i});
-        }
+    //Set clicked piece to the piece to move if clicked square is a piece and no piece has been clicked
+    if (click_start == null & current_piece != null) {
+      if (current_piece.player === player){
+        this.setState({click_start: i});
       }
-      //
-      else if (click_start != null) {
-        piece_start = squares[click_start];
-        squares[click_start] = null;
-        squares[i] = piece_start;
+    }
+    //
+    else if (click_start != null) {
+      piece_start = squares[click_start];
+      squares[click_start] = null;
+      squares[i] = piece_start;
 
-        (player == 'white') ? player = 'black' : player = 'white';
+      (player === 'white') ? player = 'black' : player = 'white';
 
-        this.setState({
-          history: history.concat([{
-            squares: squares,
-          }]),
-          click_start: null,
-          player: player
-        });
-      }
-      else {
-        this.setState({click_start: null});
-      }
+      this.setState({
+        history: history.concat([{
+          squares: squares,
+        }]),
+        click_start: null,
+        player: player
+      });
+    }
+    else {
+      this.setState({click_start: null});
+    }
   };
 
   render() {
@@ -73,6 +76,7 @@ class Chess extends Component {
         <Board 
           squares={current_squares}
           onClick={(i) => this.handle_click(i)}
+          onDragStart={(id) => this.drag_start(id)}
         />
       </div>
     </div>
@@ -89,7 +93,7 @@ class Board extends React.Component {
     var html_row = [];
       for (var k = 0; k < 8; k ++){
         let id = i*8 + k
-        let current_square = <Square value={this.props.squares[id]} key={id} color={color} onClick={() => this.props.onClick(id)}/>;
+        let current_square = <Square value={this.props.squares[id]} key={id} color={color} onClick={() => this.props.onClick(id)} onDragStart={(event) => this.props.onDragStart(id)}/>;
         html_row.push(current_square);
         color = !color
       }
@@ -108,16 +112,26 @@ class Board extends React.Component {
 }
 
 class Square extends React.Component {
+  drag_start(event) {
+    alert('start')
+  }
+
   renderSquare(color){
-      var style = {}
-      var class_name = "dark square"
+    var class_name = "dark square"
+    var url = null;
+
     if (this.props.value) {
-      style = this.props.value.style;
+      url = this.props.value.url;
     }
     if (color) {
         class_name = "light square"
     }
-      return <div className={class_name} style={style} onClick={() => this.props.onClick()}>  </div>
+    if (url){
+      return <div className={class_name} onClick={() => this.props.onClick()} > <ReactPiece url = {url} onDragStart = {(event) => this.props.onDragStart(event)}/> </div>
+    }
+    else {
+      return <div className={class_name} onClick={() => this.props.onClick()} > </div>
+    }
   }
   render() {
     var color = this.props.color
@@ -129,16 +143,23 @@ class Square extends React.Component {
   }
 }
 
-class ReactPawn extends React.Component {
+class ReactPiece extends React.Component {
+  dragEnd = (event) => {
+    alert('end')
+  }
+  drop = (event) => {
+    alert('drop')
+  }
   render() {
-    return <img src="https://upload.wikimedia.org/wikipedia/commons/4/45/Chess_plt45.svg" width="43" height="43" />;
+    var url = this.props.url
+    return <img src={url} width="43" height="43" alt ='' draggable="true" onDragStart={(event) => this.props.onDragStart(event)} onDrop={this.drop} onDragOver={(event) => event.preventDefault()} onDragEnd={this.dragEnd} />;
   }
 }
 
 class Piece {
   constructor(player, img_url, name){
     this.player = player;
-    this.style = {backgroundImage: "url('"+img_url+"')"};
+    this.url = img_url;
     this.name = name;
   }
 }
@@ -146,7 +167,7 @@ class Piece {
 class Pawn extends Piece {
   constructor(player){
     var url='https://upload.wikimedia.org/wikipedia/commons/4/45/Chess_plt45.svg'
-    if (player == 'black') {
+    if (player === 'black') {
         url = 'https://upload.wikimedia.org/wikipedia/commons/c/c7/Chess_pdt45.svg'
     }
     super(player,url,'Pawn')
@@ -156,7 +177,7 @@ class Pawn extends Piece {
 class Rook extends Piece {
     constructor(player) {
         var url = 'https://upload.wikimedia.org/wikipedia/commons/7/72/Chess_rlt45.svg'
-        if (player == 'black') {
+        if (player === 'black') {
             url = 'https://upload.wikimedia.org/wikipedia/commons/f/ff/Chess_rdt45.svg'
         }
         super(player, url,'Rook')
@@ -166,7 +187,7 @@ class Rook extends Piece {
 class Knight extends Piece {
     constructor(player) {
         var url = 'https://upload.wikimedia.org/wikipedia/commons/7/70/Chess_nlt45.svg'
-        if (player == 'black') {
+        if (player === 'black') {
             url = 'https://upload.wikimedia.org/wikipedia/commons/e/ef/Chess_ndt45.svg'
         }
         super(player, url, 'Knight')
@@ -176,7 +197,7 @@ class Knight extends Piece {
 class Bishop extends Piece {
     constructor(player) {
         var url = 'https://upload.wikimedia.org/wikipedia/commons/b/b1/Chess_blt45.svg'
-        if (player == 'black') {
+        if (player === 'black') {
             url = 'https://upload.wikimedia.org/wikipedia/commons/9/98/Chess_bdt45.svg'
         }
         super(player, url, 'Bishop')
@@ -186,7 +207,7 @@ class Bishop extends Piece {
 class Queen extends Piece {
     constructor(player) {
         var url = 'https://upload.wikimedia.org/wikipedia/commons/1/15/Chess_qlt45.svg'
-        if (player == 'black') {
+        if (player === 'black') {
             url = 'https://upload.wikimedia.org/wikipedia/commons/4/47/Chess_qdt45.svg'
         }
         super(player, url, 'Queen')
@@ -196,7 +217,7 @@ class Queen extends Piece {
 class King extends Piece {
     constructor(player) {
         var url = 'https://upload.wikimedia.org/wikipedia/commons/4/42/Chess_klt45.svg'
-        if (player == 'black') {
+        if (player === 'black') {
             url = 'https://upload.wikimedia.org/wikipedia/commons/f/f0/Chess_kdt45.svg'
         }
         super(player, url, 'King')
@@ -220,11 +241,11 @@ function initialize_board(){
     board[39] = new King (color);
   }
   color = 'black';
-  for (var i = 0; i < 2; i++){
+  for (var j = 0; j < 2; j++){
 
-    board[i*56] = new Rook (color);
-    board[i*40 + 8] = new Knight (color);
-    board[i*24 + 16] = new Bishop (color);
+    board[j*56] = new Rook (color);
+    board[j*40 + 8] = new Knight (color);
+    board[j*24 + 16] = new Bishop (color);
     board[24] = new Queen (color);
     board[32] = new King (color);
   }
