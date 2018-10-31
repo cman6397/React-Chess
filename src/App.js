@@ -169,14 +169,14 @@ class Square extends React.Component {
     }
     if (style !== null ){
       if (this.props.player !== player){
-        return <button className={class_name} onClick={() => this.props.onClick()} style = {style}> </button>
+        return <div className={class_name} onClick={() => this.props.onClick()} style = {style}> </div>
       }
       else {
-        return <button className={class_name} onClick={() => this.props.onClick()}>  <ReactPiece url = {url}/> </button>
+        return <div className={class_name} onClick={() => this.props.onClick()}>  <ReactPiece url = {url}/> </div>
       }
     }
     else {
-      return <button className={class_name} onClick={() => this.props.onClick()}> </button>
+      return <div className={class_name} onClick={() => this.props.onClick()}> </div>
     }
   }
   render() {
