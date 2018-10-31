@@ -6,8 +6,8 @@
   border: none;
   background-size: 46px 46px;
   background-position: center center;
-  padding-left:2px;
   overflow: hidden;
+
 }
 .square:focus {outline:0;}
 
@@ -28,6 +28,7 @@
   margin-left:70px ;
   margin-top:70px ;
   position:absolute;
+  overflow:hidden;
 }
 .game_container {
   height: 500px;
@@ -43,11 +44,17 @@
   margin:10px;
 }
 
+.piece_container {
+  position:absolute;
+  bottom:0px;
+  left:2px;
+
+}
+
 .react_piece { 
   position:relative;
-  width:46px;
   height:46px;
-  top:1px;
+  width:46px;
 }
 
 
