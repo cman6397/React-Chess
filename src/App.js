@@ -1,5 +1,8 @@
 import React, { Component } from 'react';
 import './App.css';
+import { DragDropContext } from 'react-dnd';
+import HTML5Backend from 'react-dnd-html5-backend';
+import ReactPiece from './Piece';
 
 class Chess extends Component {
   constructor(props) {
@@ -186,19 +189,6 @@ class Square extends React.Component {
   }
 }
 
-class ReactPiece extends React.Component {
-  dragEnd = (event) => {
-    alert('end')
-  }
-  drop = (event) => {
-    alert('drop')
-  }
-  render() {
-    var url = this.props.url
-    return <img src={url} alt ='' draggable="true" className="react_piece"/>;
-  }
-}
-
 class Piece {
   constructor(player, img_url, name){
     this.player = player;
@@ -291,5 +281,4 @@ function initialize_board(){
   }
   return board
 }
-
-export default Chess;
+export default DragDropContext(HTML5Backend)(Chess);
