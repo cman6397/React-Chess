@@ -7,6 +7,7 @@
   background-size: 46px 46px;
   background-position: center center;
   padding-left:2px;
+  overflow: hidden;
 }
 .square:focus {outline:0;}
 
@@ -43,10 +44,11 @@
 }
 
 .react_piece { 
-  position:absolute;
+  position:relative;
   width:46px;
   height:46px;
-  left:2px;
-  top:2px;
+  top:1px;
 }
+
+
 

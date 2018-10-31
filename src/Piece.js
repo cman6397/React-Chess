@@ -22,7 +22,9 @@ class ReactPiece extends React.Component {
     var url = this.props.url
     const { connectDragSource, isDragging } = this.props;
     return connectDragSource(
-      <img src={url} alt ='' className="react_piece"/>
+    <div>
+      <img src={url} alt ='' className = "react_piece"/>
+    </div>
     );
   }
   }
