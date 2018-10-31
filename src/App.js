@@ -147,12 +147,7 @@ class Board extends React.Component {
 }
 
 class Square extends React.Component {
-  drag_start(event){
-    console.log('start')
-  }
-  drag_end(event){
-    console.log('end')
-  }
+
   renderSquare(color){
     var class_name = "dark square"
     var style = null;
