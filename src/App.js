@@ -3,6 +3,7 @@ import './App.css';
 import { DragDropContext } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
 import ReactPiece from './Piece';
+import DropSquare from './DropSquare';
 
 class Chess extends Component {
   constructor(props) {
@@ -148,34 +149,33 @@ class Board extends React.Component {
 
 class Square extends React.Component {
 
-  renderSquare(color){
-    var class_name = "dark square"
-    var style = null;
-    var url = null;
-    var player = null;
+    renderSquare(color) {
+        var class_name = "dark square"
+        var style = null;
+        var url = null;
+        var player = null;
 
-    if (this.props.value) {
-      style = this.props.value.style;
-      url = this.props.value.url;
-      player = this.props.value.player;
+        if (color) {
+            class_name = "light square"
+        }
+        if (this.props.value) {
+            style = this.props.value.style;
+            url = this.props.value.url;
+            player = this.props.value.player;
+            if (this.props.player !== player) {
+                return <DropSquare class_name={class_name} style={style} onClick={() => this.props.onClick()}/>
+            }
+            else {
+                return <div className={class_name} onClick={() => this.props.onClick()}>  <ReactPiece url={url} /> </div>
+            }
+        }
+        else {
+            return <DropSquare class_name={class_name} style={style} onClick={() => this.props.onClick()}/>
+        }
     }
-    if (color) {
-        class_name = "light square"
-    }
-    if (style !== null ){
-      if (this.props.player !== player){
-        return <div className={class_name} onClick={() => this.props.onClick()} style = {style}> </div>
-      }
-      else {
-        return <div className={class_name} onClick={() => this.props.onClick()}>  <ReactPiece url = {url}/> </div>
-      }
-    }
-    else {
-      return <div className={class_name} onClick={() => this.props.onClick()}> </div>
-    }
-  }
+
   render() {
-    var color = this.props.color
+    var color = this.props.color;
     return (
     <React.Fragment>
       {this.renderSquare(color)}
@@ -183,6 +183,7 @@ class Square extends React.Component {
     );
   }
 }
+
 
 class Piece {
   constructor(player, img_url, name){
