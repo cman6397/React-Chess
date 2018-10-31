@@ -26,7 +26,29 @@ class Chess extends Component {
     });
   }
   drag_start(id) {
-    alert(id)
+    this.setState({click_start: id})
+  }
+  drop(id) {
+    const history = this.state.history.slice();
+    const squares = history[history.length - 1].squares.slice();
+    let piece_start = squares[this.state.click_start];
+    let player = this.state.player;
+
+    squares[this.state.click_start] = null;
+    squares[id] = piece_start;
+
+    (player === 'white') ? player = 'black' : player = 'white';
+
+    this.setState({
+      history: history.concat([{
+        squares: squares,
+      }]),
+      click_start: null,
+      player: player
+    });
+  }
+  drag_end(id) {
+    this.setState({click_start: null})
   }
   handle_click(i) {
     const history = this.state.history.slice();
@@ -38,11 +60,9 @@ class Chess extends Component {
 
     //Set clicked piece to the piece to move if clicked square is a piece and no piece has been clicked
     if (click_start == null & current_piece != null) {
-      if (current_piece.player === player){
-        this.setState({click_start: i});
-      }
+      this.setState({click_start: i});
     }
-    //
+    // valid click set up
     else if (click_start != null) {
       piece_start = squares[click_start];
       squares[click_start] = null;
@@ -74,9 +94,12 @@ class Chess extends Component {
       onClick={() => this.back()} > Back </button>
       <div className = 'board_container' >
         <Board 
-          squares={current_squares}
-          onClick={(i) => this.handle_click(i)}
-          onDragStart={(id) => this.drag_start(id)}
+          squares = {current_squares}
+          onClick = {(i) => this.handle_click(i)}
+          onDragStart = {(id) => this.drag_start(id)}
+          onDragEnd = {(id) => this.drag_end(id)}
+          onDrop = {(id) => this.drop(id)}
+          player = {this.state.player}
         />
       </div>
     </div>
@@ -93,7 +116,16 @@ class Board extends React.Component {
     var html_row = [];
       for (var k = 0; k < 8; k ++){
         let id = i*8 + k
-        let current_square = <Square value={this.props.squares[id]} key={id} color={color} onClick={() => this.props.onClick(id)} onDragStart={(event) => this.props.onDragStart(id)}/>;
+        let current_square = <Square 
+          value={this.props.squares[id]} 
+          key={id} 
+          color={color} 
+          player = {this.props.player}
+          onClick={() => this.props.onClick(id)} 
+          onDragStart={(event) => this.props.onDragStart(id)} 
+          onDragEnd = {(event) => this.props.onDragEnd(id)} 
+          onDrop = {(event) => this.props.onDrop(id)}
+        />;
         html_row.push(current_square);
         color = !color
       }
@@ -112,25 +144,36 @@ class Board extends React.Component {
 }
 
 class Square extends React.Component {
-  drag_start(event) {
-    alert('start')
+  drag_start(event){
+    console.log('start')
   }
-
+  drag_end(event){
+    console.log('end')
+  }
   renderSquare(color){
     var class_name = "dark square"
+    var style = null;
     var url = null;
+    var player = null;
 
     if (this.props.value) {
+      style = this.props.value.style;
       url = this.props.value.url;
+      player = this.props.value.player;
     }
     if (color) {
         class_name = "light square"
     }
-    if (url){
-      return <div className={class_name} onClick={() => this.props.onClick()} > <ReactPiece url = {url} onDragStart = {(event) => this.props.onDragStart(event)}/> </div>
+    if (style !== null ){
+      if (this.props.player !== player){
+        return <button className={class_name} onClick={() => this.props.onClick()} style = {style}> </button>
+      }
+      else {
+        return <button className={class_name} onClick={() => this.props.onClick()}>  <ReactPiece url = {url}/> </button>
+      }
     }
     else {
-      return <div className={class_name} onClick={() => this.props.onClick()} > </div>
+      return <button className={class_name} onClick={() => this.props.onClick()}> </button>
     }
   }
   render() {
@@ -152,15 +195,16 @@ class ReactPiece extends React.Component {
   }
   render() {
     var url = this.props.url
-    return <img src={url} width="43" height="43" alt ='' draggable="true" onDragStart={(event) => this.props.onDragStart(event)} onDrop={this.drop} onDragOver={(event) => event.preventDefault()} onDragEnd={this.dragEnd} />;
+    return <img src={url} alt ='' draggable="true" className="react_piece"/>;
   }
 }
 
 class Piece {
   constructor(player, img_url, name){
     this.player = player;
-    this.url = img_url;
+    this.style = {backgroundImage: "url('"+img_url+"')"};
     this.name = name;
+    this.url = img_url;
   }
 }
 
@@ -224,34 +268,28 @@ class King extends Piece {
     }
 }
 
-
 function initialize_board(){
   var board = Array(64).fill(null)
   for (var k = 0; k < 8; k++){
-    board[k*8 + 1] = new Pawn ('black');
-    board[k*8 + 6] = new Pawn ('white');
+    board[k+8] = new Pawn ('black');
+    board[k+48] = new Pawn ('white');
     };
 
-  var color = 'white';
+  var color = 'black';
   for (var i = 0; i < 2; i++){
+    if (i===1) {
+      color = 'white'
+    }
+    board[i*56] = new Rook (color);
     board[i*56 + 7] = new Rook (color);
-    board[i*40 + 15] = new Knight (color);
-    board[i*24 + 23] = new Bishop (color);
-    board[31] = new Queen (color);
-    board[39] = new King (color);
-  }
-  color = 'black';
-  for (var j = 0; j < 2; j++){
-
-    board[j*56] = new Rook (color);
-    board[j*40 + 8] = new Knight (color);
-    board[j*24 + 16] = new Bishop (color);
-    board[24] = new Queen (color);
-    board[32] = new King (color);
+    board[i*56 + 1] = new Knight (color);
+    board[i*56 + 6] = new Knight (color);
+    board[i*56 + 2] = new Bishop (color);
+    board[i*56 + 5] = new Bishop (color);
+    board[i*56 + 3] = new Queen (color);
+    board[i*56 + 4] = new King (color);
   }
   return board
 }
-
-
 
 export default Chess;
