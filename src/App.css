@@ -28,6 +28,7 @@
   margin-left:70px ;
   margin-top:70px ;
   position:absolute;
+  cursor:default;
 }
 .game_container {
   height: 500px;

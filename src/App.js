@@ -192,4 +192,5 @@ function initialize_board(){
   return board
 }
 
+
 export default DragDropContext(HTML5Backend)(Chess);
