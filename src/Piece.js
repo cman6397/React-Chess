@@ -6,7 +6,16 @@ import './App.css';
 
 const pieceSource = {
   beginDrag(props) {
-    return {};
+    const item = { id: props.id };
+    return item;
+  },
+  endDrag(props, monitor, component) {
+    if (!monitor.didDrop()) {
+      //Decided not to move piece maybe
+      return;
+    }
+    const item = monitor.getItem();
+    return props.handle_drag_end(item.id);
   }
 };
 
@@ -39,3 +48,10 @@ ReactPiece.propTypes = {
 };
 
 export default DragSource(ItemTypes.PIECE, pieceSource, collect)(ReactPiece);
+
+
+
+
+
+
+

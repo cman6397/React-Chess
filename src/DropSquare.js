@@ -1,15 +1,31 @@
 import React, { Component } from 'react';
-import PropTypes from 'prop-types';
 import { ItemTypes } from './Constants';
-import { DragSource } from 'react-dnd';
+import { DropTarget } from 'react-dnd';
 import './App.css';
+
+const squareTarget = {
+    drop(props) {
+      return props.handle_drop();
+    }
+};
+
+function collect(connect, monitor) {
+    return {
+      connectDropTarget: connect.dropTarget(),
+      isOver: monitor.isOver()
+    };
+}
 
 class DropSquare extends React.Component {
     render() {
         var style = this.props.style;
         var class_name = this.props.class_name;
-        return <div className={class_name} style={style} onClick={() => this.props.onClick()}> </div>
+        const connectDropTarget = this.props.connectDropTarget;
+        return connectDropTarget(
+            <div className={class_name} style={style}> </div>
+        )
     }
 }
+  
 
-export default (DropSquare);
+export default DropTarget(ItemTypes.PIECE, squareTarget, collect)(DropSquare);

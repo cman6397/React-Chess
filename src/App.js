@@ -11,7 +11,7 @@ class Chess extends Component {
     this.state = {
       history: [{squares: initialize_board()}],
       player: 'white',
-      click_start: null
+      drag_end: null
     }
   }
   back() {
@@ -29,17 +29,27 @@ class Chess extends Component {
       player:player
     });
   }
-  drag_start(id) {
-    this.setState({click_start: id})
+  handle_drop(id) {
+    this.setState({drag_end: id});
   }
-  drop(id) {
+
+  handle_drag_end(id) {
     const history = this.state.history.slice();
     const squares = history[history.length - 1].squares.slice();
-    let piece_start = squares[this.state.click_start];
+    let drag_start = id;
+    let drag_end = this.state.drag_end;
+    let piece_start = squares[drag_start];
     let player = this.state.player;
 
-    squares[this.state.click_start] = null;
-    squares[id] = piece_start;
+    /*Make it possible to castle (only move which moves 2 pieces at once)
+    if (piece_start.name === 'King') {
+      if (drag_start === 60 && (drag_end === 57 || drag_end == 62)) {
+        
+      }
+    }*/
+
+    squares[drag_start] = null;
+    squares[drag_end] = piece_start;
 
     (player === 'white') ? player = 'black' : player = 'white';
 
@@ -47,44 +57,9 @@ class Chess extends Component {
       history: history.concat([{
         squares: squares,
       }]),
-      click_start: null,
+      drag_end: null,
       player: player
     });
-  }
-  drag_end(id) {
-    this.setState({click_start: null})
-  }
-  handle_click(i) {
-    const history = this.state.history.slice();
-    const squares = history[history.length - 1].squares.slice();
-    let click_start = this.state.click_start;
-    let piece_start = null;
-    let current_piece = squares[i];
-    let player = this.state.player;
-
-    //Set clicked piece to the piece to move if clicked square is a piece and no piece has been clicked
-    if (click_start == null & current_piece != null) {
-      this.setState({click_start: i});
-    }
-    // valid click set up
-    else if (click_start != null) {
-      piece_start = squares[click_start];
-      squares[click_start] = null;
-      squares[i] = piece_start;
-
-      (player === 'white') ? player = 'black' : player = 'white';
-
-      this.setState({
-        history: history.concat([{
-          squares: squares,
-        }]),
-        click_start: null,
-        player: player
-      });
-    }
-    else {
-      this.setState({click_start: null});
-    }
   };
 
   render() {
@@ -99,11 +74,12 @@ class Chess extends Component {
       <div className = 'board_container' >
         <Board 
           squares = {current_squares}
-          onClick = {(i) => this.handle_click(i)}
           onDragStart = {(id) => this.drag_start(id)}
           onDragEnd = {(id) => this.drag_end(id)}
           onDrop = {(id) => this.drop(id)}
           player = {this.state.player}
+          handle_drop={(id) => this.handle_drop(id)}
+          handle_drag_end = {(id) => this.handle_drag_end(id)}
         />
       </div>
     </div>
@@ -125,10 +101,9 @@ class Board extends React.Component {
           key={id} 
           color={color} 
           player = {this.props.player}
-          onClick={() => this.props.onClick(id)} 
-          onDragStart={(event) => this.props.onDragStart(id)} 
-          onDragEnd = {(event) => this.props.onDragEnd(id)} 
-          onDrop = {(event) => this.props.onDrop(id)}
+          handle_drop={() => this.props.handle_drop(id)}
+          handle_drag_end = {(id) => this.props.handle_drag_end(id)}
+          id = {id}
         />;
         html_row.push(current_square);
         color = !color
@@ -148,7 +123,6 @@ class Board extends React.Component {
 }
 
 class Square extends React.Component {
-
     renderSquare(color) {
         var class_name = "dark square"
         var style = null;
@@ -163,14 +137,31 @@ class Square extends React.Component {
             url = this.props.value.url;
             player = this.props.value.player;
             if (this.props.player !== player) {
-                return <DropSquare class_name={class_name} style={style} onClick={() => this.props.onClick()}/>
+                return (
+                <DropSquare 
+                  class_name={class_name} 
+                  style={style} 
+                  handle_drop={() => this.props.handle_drop()}
+                />);
             }
             else {
-                return <div className={class_name} onClick={() => this.props.onClick()}>  <ReactPiece url={url} /> </div>
+                return (
+                <div className={class_name}>  
+                  <ReactPiece 
+                    url={url} 
+                    id = {this.props.id}
+                    handle_drag_end = {(id) => this.props.handle_drag_end(id)}
+                  /> 
+                </div> );
             }
         }
         else {
-            return <DropSquare class_name={class_name} style={style} onClick={() => this.props.onClick()}/>
+            return (
+            <DropSquare 
+              class_name={class_name} 
+              style={style} 
+              handle_drop={() => this.props.handle_drop()}
+            /> );
         }
     }
 
