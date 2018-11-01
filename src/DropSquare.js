@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React from 'react';
 import { ItemTypes } from './Constants';
 import { DropTarget } from 'react-dnd';
 import './App.css';

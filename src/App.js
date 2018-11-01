@@ -136,24 +136,16 @@ class Square extends React.Component {
             style = this.props.value.style;
             url = this.props.value.url;
             player = this.props.value.player;
-            if (this.props.player !== player) {
-                return (
-                <DropSquare 
-                  class_name={class_name} 
-                  style={style} 
-                  handle_drop={() => this.props.handle_drop()}
-                />);
-            }
-            else {
-                return (
-                <div className={class_name}>  
-                  <ReactPiece 
-                    url={url} 
-                    id = {this.props.id}
-                    handle_drag_end = {(id) => this.props.handle_drag_end(id)}
-                  /> 
-                </div> );
-            }
+        }
+        if (this.props.player === player) {
+          return (
+          <div className={class_name}>  
+            <ReactPiece 
+              url={url} 
+              id = {this.props.id}
+              handle_drag_end = {(id) => this.props.handle_drag_end(id)}
+            /> 
+          </div> );
         }
         else {
             return (
