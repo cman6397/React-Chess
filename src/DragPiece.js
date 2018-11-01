@@ -20,13 +20,19 @@ const pieceSource = {
 };
 
 function collect(connect, monitor) {
-  return {
-    connectDragSource: connect.dragSource(),
-    isDragging: monitor.isDragging()
-  }
+    return {
+        connectDragSource: connect.dragSource(),
+        connectDragPreview: connect.dragPreview(),
+        isDragging: monitor.isDragging()
+    };
 }
 
 class ReactPiece extends React.Component {
+  componentDidMount() {
+    const img = new Image(46, 46);
+    img.src = this.props.url;
+    img.onload = () => this.props.connectDragPreview(img);
+  }
   render() {
     var url = this.props.url
     const { connectDragSource, isDragging } = this.props;
