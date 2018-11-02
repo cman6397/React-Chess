@@ -49,7 +49,7 @@ class Chess extends Component {
     let possible_moves = legal_moves(squares, player);
     /* make move */
     make_move(drag_start, drag_end, squares, piece_copy);
-    /* Make sure move was legal.  If not legal exit and don't change states.*/
+    /*Make sure move was legal.  If not legal exit and don't change states.*/
     if (!is_legal(squares,possible_moves)){
       return;
     }
@@ -196,6 +196,18 @@ function make_move(start, end, squares, piece) {
                     squares[start + 1] = null;
                 }
             }
+        }
+    }
+    /* For Castling */
+    if (piece.name === 'King') {
+        /* kingside */
+        if ((end - start) === 2) {
+            squares[start + 1] = squares[end + 1];
+            squares[end + 1] = null
+        }
+        else if ((start - end) === 2) {
+            squares[start - 1] = squares[end - 2];
+            squares[end - 2] = null
         }
     }
     squares[start] = null;

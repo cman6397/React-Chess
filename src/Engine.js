@@ -22,6 +22,9 @@ function legal_moves(squares, player) {
                     legal_boards = legal_boards.concat(rook_moves(boundary_squares, i, player));
                     legal_boards = legal_boards.concat(bishop_moves(boundary_squares, i, player));
                 }
+                else if (boundary_squares[i].name === 'King') {
+                    legal_boards = legal_boards.concat(king_moves(boundary_squares, i, player));
+                }
             }
         }
     }
@@ -223,6 +226,63 @@ function rook_moves(squares, location, player) {
     return legal_boards;
 }
 
+function king_moves(squares, location, player) {
+    let legal_boards = []
+
+    let king = squares[location];
+    let up = forward(1, location, player);
+    let up_right = right(1, forward(1, location, player), player);
+    let up_left = left(1, forward(1, location, player), player);
+    let move_left = left(1, location, player);
+    let move_right = right(1, location, player);
+    let down_right = right(1, back(1, location, player), player);
+    let down_left = left(1, back(1, location, player), player);
+    let down = forward(1, location, player);
+
+    let moves = [up, up_right, up_left, move_left, move_right, down_right, down_left, down]
+
+    /* Regular Moves */
+    for (var i = 0; i < moves.length; i++) {
+        if (squares[moves[i]] === null && squares[moves[i]] !== 'boundary') {
+            legal_boards.push(make_move(king, location, moves[i], squares))
+        }
+        else if (squares[moves[i]].player !== player) {
+            legal_boards.push(make_move(king, location, moves[i], squares))
+        }
+    }
+
+    /* Castling */
+    let white_kingside_rook = 98;
+    let white_queenside_rook = 91;
+    let black_kingside_rook = 28;
+    let black_queenside_rook = 21;
+    let white_king_start = 95;
+    let black_king_start = 25;
+
+ 
+    if (!king.has_moved) {
+        /* White Kingside */
+        if (location === white_king_start && !squares[white_kingside_rook].has_moved && squares[white_king_start + 1] === null && squares[white_king_start + 2] === null) {
+            legal_boards.push(castle(king, white_king_start, white_king_start + 2, squares[white_kingside_rook], white_kingside_rook, white_kingside_rook-2, squares))
+        }
+        /* Black Kingside */
+        if (location === black_king_start && !squares[black_kingside_rook].has_moved && squares[black_king_start + 1] === null && squares[black_king_start + 2] === null) {
+            legal_boards.push(castle(king, black_king_start, black_king_start + 2, squares[black_kingside_rook], black_kingside_rook, black_kingside_rook - 2, squares))
+        }
+        /* White Queenside */
+        if (location === white_king_start && !squares[white_queenside_rook].has_moved && squares[white_king_start - 1] === null && squares[white_king_start - 2] === null && squares[white_king_start - 3] === null) {
+            legal_boards.push(castle(king, white_king_start, white_king_start - 2, squares[white_queenside_rook], white_queenside_rook, white_queenside_rook + 3, squares))
+        }
+        /* Black Queenside */
+        if (location === black_king_start && !squares[black_queenside_rook].has_moved && squares[black_king_start - 1] === null && squares[black_king_start - 2] === null && squares[black_king_start - 3] === null) {
+            legal_boards.push(castle(king, black_king_start, black_king_start - 2, squares[black_queenside_rook], black_queenside_rook, black_queenside_rook + 3, squares))
+        }
+    }
+    
+
+    return legal_boards;
+}
+
 
 
 function make_move(piece, start, end, squares) {
@@ -236,6 +296,16 @@ function en_passant(piece, start, end, captured_location, squares) {
     squares[start] = null;
     squares[end] = piece;
     squares[captured_location] = null;
+
+    return squares;
+}
+
+function castle(king, king_start, king_end, rook, rook_start, rook_end, squares) {
+    squares = squares.slice();
+    squares[king_start] = null;
+    squares[rook_start] = null;
+    squares[king_end] = king;
+    squares[rook_end] = rook;
 
     return squares;
 }
