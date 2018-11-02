@@ -259,7 +259,6 @@ function king_moves(squares, location, player) {
     let white_king_start = 95;
     let black_king_start = 25;
 
- 
     if (!king.has_moved) {
         /* White Kingside */
         if (location === white_king_start && !squares[white_kingside_rook].has_moved && squares[white_king_start + 1] === null && squares[white_king_start + 2] === null) {
@@ -278,8 +277,7 @@ function king_moves(squares, location, player) {
             legal_boards.push(castle(king, black_king_start, black_king_start - 2, squares[black_queenside_rook], black_queenside_rook, black_queenside_rook + 3, squares))
         }
     }
-    
-
+  
     return legal_boards;
 }
 
@@ -353,6 +351,5 @@ function right(distance, location, player) {
         return location - distance;
     }
 }
-
 
 export {legal_moves, is_legal}

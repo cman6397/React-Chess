@@ -69,4 +69,73 @@ class King extends Piece {
     }
 }
 
-export {Pawn,Rook,Knight,Bishop,King,Queen}
+function make_move(start, end, squares, piece) {
+
+    /*For En passant*/
+    if (piece.name === 'Pawn') {
+        if (Math.abs(start - end) === 16) {
+            piece.just_moved_two = true;
+        }
+        else {
+            piece.just_moved_two = false;
+            /* En Passant.  Remove pawn to the direct left or right when en passant criteria is satisfied.*/
+            if (Math.abs(start - end) === 7 && squares[end] === null) {
+                if (piece.player === 'white') {
+                    squares[start + 1] = null;
+                }
+                else {
+                    squares[start - 1] = null;
+                }
+            }
+            else if (Math.abs(start - end) === 9 && squares[end] === null) {
+                if (piece.player === 'white') {
+                    squares[start - 1] = null;
+                }
+                else {
+                    squares[start + 1] = null;
+                }
+            }
+        }
+    }
+    /* For Castling */
+    if (piece.name === 'King') {
+        /* kingside */
+        if ((end - start) === 2) {
+            squares[start + 1] = squares[end + 1];
+            squares[end + 1] = null
+        }
+        else if ((start - end) === 2) {
+            squares[start - 1] = squares[end - 2];
+            squares[end - 2] = null
+        }
+    }
+    squares[start] = null;
+    squares[end] = piece;
+    piece.has_moved = true;
+}
+
+function initialize_board() {
+    var board = Array(64).fill(null)
+    for (var k = 0; k < 8; k++) {
+        board[k + 8] = new Pawn('black');
+        board[k + 48] = new Pawn('white');
+    };
+
+    var color = 'black';
+    for (var i = 0; i < 2; i++) {
+        if (i === 1) {
+            color = 'white'
+        }
+        board[i * 56] = new Rook(color);
+        board[i * 56 + 7] = new Rook(color);
+        board[i * 56 + 1] = new Knight(color);
+        board[i * 56 + 6] = new Knight(color);
+        board[i * 56 + 2] = new Bishop(color);
+        board[i * 56 + 5] = new Bishop(color);
+        board[i * 56 + 3] = new Queen(color);
+        board[i * 56 + 4] = new King(color);
+    }
+    return board
+}
+
+export {Pawn,Rook,Knight,Bishop,King,Queen, initialize_board, make_move}
