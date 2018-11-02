@@ -7,6 +7,7 @@ import DropSquare from './DropSquare';
 import {Pawn,Rook,Knight,Bishop,King,Queen} from './Pieces.js';
 import { legal_moves, is_legal } from './Engine';
 
+
 class Chess extends Component {
   constructor(props) {
     super(props);
@@ -40,16 +41,15 @@ class Chess extends Component {
     const squares = history[history.length - 1].squares.slice();
     let drag_start = id;
     let drag_end = this.state.drag_end;
-    let piece_start = squares[drag_start];
     let player = this.state.player;
+    /*Make copy of piece */
+    let piece_copy = JSON.parse(JSON.stringify(squares[drag_start]));
+
     /* get legal moves */
     let possible_moves = legal_moves(squares, player);
-
     /* make move */
-    squares[drag_start] = null;
-    squares[drag_end] = piece_start;
-
-    /* Make sure move was legal */
+    make_move(drag_start, drag_end, squares, piece_copy);
+    /* Make sure move was legal.  If not legal exit and don't change states.*/
     if (!is_legal(squares,possible_moves)){
       return;
     }
@@ -168,6 +168,39 @@ class Square extends React.Component {
     </React.Fragment>
     );
   }
+}
+
+function make_move(start, end, squares, piece) {
+
+    /*For En passant*/
+    if (piece.name === 'Pawn') {
+        if (Math.abs(start - end) === 16) {
+            piece.just_moved_two = true;
+        }
+        else {
+            piece.just_moved_two = false;
+            /* En Passant.  Remove pawn to the direct left or right when en passant criteria is satisfied.*/
+            if (Math.abs(start - end) === 7 && squares[end] === null) {
+                if (piece.player === 'white') {
+                    squares[start + 1] = null;
+                }
+                else {
+                    squares[start - 1] = null;
+                }
+            }
+            else if (Math.abs(start - end) === 9 && squares[end] === null) {
+                if (piece.player === 'white') {
+                    squares[start - 1] = null;
+                }
+                else {
+                    squares[start + 1] = null;
+                }
+            }
+        }
+    }
+    squares[start] = null;
+    squares[end] = piece;
+    piece.has_moved = true;
 }
 
 function initialize_board(){

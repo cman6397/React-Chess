@@ -51,7 +51,9 @@ function pawn_moves(squares, location, player) {
     
     let pawn = squares[location];
     let forward_one = forward(1,location, player)
-    let forward_two = forward(2,location, player)
+    let forward_two = forward(2, location, player)
+    let left_one = left(1, location, player);
+    let right_one = right(1, location, player);
     let diag_left = left(1,forward(1,location,player),player)
     let diag_right = right(1,forward(1,location,player),player)
     
@@ -63,6 +65,34 @@ function pawn_moves(squares, location, player) {
     if (squares[forward_one] === null) {
         legal_boards.push(make_move(pawn,location,forward_one,squares));
     }
+    /*legal to take left*/
+    if (squares[diag_left] !== null && squares[diag_left] !== 'boundary') {
+        if (squares[diag_left].player !== player) {
+            legal_boards.push(make_move(pawn, location, diag_left, squares));
+        }
+    }
+    /*legal to take right*/
+    if (squares[diag_right] !== null && squares[diag_right] !== 'boundary') {
+        if (squares[diag_right].player !== player) {
+            legal_boards.push(make_move(pawn, location, diag_right, squares));
+        }
+    }
+    /*legal to take en passant right*/
+    if (squares[right_one] !== null && squares[right_one] !== 'boundary') {
+        if (squares[right_one].name === 'Pawn') {
+            if (squares[right_one].player !== player && squares[right_one].just_moved_two) {
+                legal_boards.push(en_passant(pawn, location, diag_right, right_one, squares));
+            }
+        }
+    }
+    /*legal to take en passant left*/
+    if (squares[left_one] !== null && squares[left_one] !== 'boundary') {
+        if (squares[left_one].name === 'Pawn') {
+            if (squares[left_one].player !== player && squares[left_one].just_moved_two) {
+                legal_boards.push(en_passant(pawn, location, diag_left, left_one, squares));
+            }
+        }
+    }
 
     return legal_boards;
 }
@@ -71,6 +101,14 @@ function make_move(piece, start, end, squares) {
     squares = squares.slice();
     squares[start] = null;
     squares[end] = piece;
+    return squares;
+}
+function en_passant(piece, start, end, captured_location, squares) {
+    squares = squares.slice();
+    squares[start] = null;
+    squares[end] = piece;
+    squares[captured_location] = null;
+
     return squares;
 }
  

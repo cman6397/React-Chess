@@ -4,6 +4,7 @@ class Piece {
     this.style = {backgroundImage: "url('"+img_url+"')"};
     this.name = name;
     this.url = img_url;
+    this.has_moved = false;
   }
 }
 
@@ -14,7 +15,7 @@ class Pawn extends Piece {
         url = 'https://upload.wikimedia.org/wikipedia/commons/c/c7/Chess_pdt45.svg'
     }
     super(player, url, 'Pawn');
-    this.has_moved = false;
+    this.just_moved_two = false;
   }
 }
 
@@ -25,7 +26,6 @@ class Rook extends Piece {
             url = 'https://upload.wikimedia.org/wikipedia/commons/f/ff/Chess_rdt45.svg'
         }
         super(player, url, 'Rook');
-        this.has_moved = false;
     }
 }
 
@@ -66,7 +66,6 @@ class King extends Piece {
             url = 'https://upload.wikimedia.org/wikipedia/commons/f/f0/Chess_kdt45.svg'
         }
         super(player, url, 'King')
-        this.has_moved = false;
     }
 }
 
