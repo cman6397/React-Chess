@@ -5,6 +5,7 @@ import HTML5Backend from 'react-dnd-html5-backend';
 import ReactPiece from './DragPiece';
 import DropSquare from './DropSquare';
 import {Pawn,Rook,Knight,Bishop,King,Queen} from './Pieces.js';
+import { legal_moves, is_legal } from './Engine';
 
 class Chess extends Component {
   constructor(props) {
@@ -41,16 +42,17 @@ class Chess extends Component {
     let drag_end = this.state.drag_end;
     let piece_start = squares[drag_start];
     let player = this.state.player;
+    /* get legal moves */
+    let possible_moves = legal_moves(squares, player);
 
-    /*Make it possible to castle (only move which moves 2 pieces at once)
-    if (piece_start.name === 'King') {
-      if (drag_start === 60 && (drag_end === 57 || drag_end == 62)) {
-        
-      }
-    }*/
-
+    /* make move */
     squares[drag_start] = null;
     squares[drag_end] = piece_start;
+
+    /* Make sure move was legal */
+    if (!is_legal(squares,possible_moves)){
+      return;
+    }
 
     (player === 'white') ? player = 'black' : player = 'white';
 
