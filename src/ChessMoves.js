@@ -1,5 +1,6 @@
 function legal_moves(squares, player) {
-    let [boundary_squares, king_location] = engine_squares(squares,player);
+    let [boundary_squares, white_king_location, black_king_location] = engine_squares(squares,player);
+    let king_location = (player === 'white') ? white_king_location : black_king_location;
     pinned_pieces(boundary_squares, king_location, player);
     var legal_boards = [];
     for (var i = 0; i < 120; i++) {
@@ -36,7 +37,8 @@ function engine_squares(squares) {
     let engine_squares = Array(120).fill(null);
     let count = 0;
     let index = 0;
-    let king_location = null;
+    let white_king_location = null;
+    let black_king_location = null;
 
     for (var i = 0; i < 12; i++) {
         for (var y = 0; y<10; y++) {
@@ -48,13 +50,18 @@ function engine_squares(squares) {
             else {
                 engine_squares[index] = squares[count];
                 if (squares[count] !== null && squares[count].name === "King") {
-                    king_location = index;
+                    if (squares[count].player === "white") {
+                        white_king_location = index;
+                    } 
+                    else {
+                        black_king_location = index;
+                    }
                 }
                 count = count + 1;
             }
         }
     }
-    return [engine_squares, king_location];
+    return [engine_squares, white_king_location, black_king_location];
 }
 
 function is_legal(squares, legal_moves) {
@@ -155,8 +162,19 @@ function pinned_pieces(boundary_squares, king_location, player) {
 
     let pinned_pieces = [];
 
-    let pin_piece = pinned_piece(boundary_squares,[1,1],king_location,player,['Queen','Bishop']);
-    pinned_pieces.push(pin_piece);
+    /* Diagonal Pins */
+    pinned_pieces.push(pinned_piece(boundary_squares,[1,1],king_location,player,['Queen','Bishop']));
+    pinned_pieces.push(pinned_piece(boundary_squares,[1,-1],king_location,player,['Queen','Bishop']));
+    pinned_pieces.push(pinned_piece(boundary_squares,[-1,1],king_location,player,['Queen','Bishop']));
+    pinned_pieces.push(pinned_piece(boundary_squares,[-1,-1],king_location,player,['Queen','Bishop']));
+
+    /* Veritcal & Horizontal Pins */
+    pinned_pieces.push(pinned_piece(boundary_squares,[1,0],king_location,player,['Queen','Rook']));
+    pinned_pieces.push(pinned_piece(boundary_squares,[-1,0],king_location,player,['Queen','Rook']));
+    pinned_pieces.push(pinned_piece(boundary_squares,[0,1],king_location,player,['Queen','Rook']));
+    pinned_pieces.push(pinned_piece(boundary_squares,[0,-1],king_location,player,['Queen','Rook']));
+
+    console.log(pinned_pieces)
     
 }
 
@@ -178,12 +196,12 @@ function pinned_piece(boundary_squares, pin_direction, king_location, player, pi
         if (boundary_squares[pin_location] !== 'boundary' && boundary_squares[pin_location].player !== player) {
             for (var i = 0; i < piece_types.length; i++){
                 if (boundary_squares[pin_location].name === piece_types[i]){
-                    console.log('pinned')
                     return [pinned_piece, pin_direction];
                 }
             }
         }
     }
+    return null;
 }
 
 
