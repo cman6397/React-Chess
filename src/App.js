@@ -16,7 +16,7 @@ class Chess extends Component {
       history: [{squares: initialize_board()}],
       player: 'white',
       drag_end: null,
-      test: tests()
+      test:tests()
     }
   }
   back() {
@@ -144,7 +144,7 @@ class Square extends React.Component {
         }
         if (this.props.player === player) {
           return (
-          <div className={class_name}>  
+          <div className={class_name}>
             <ReactPiece 
               url={url} 
               id = {this.props.id}
