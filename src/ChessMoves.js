@@ -1,6 +1,6 @@
 function legal_moves(squares, player) {
-    let [boundary_squares, white_king_location, black_king_location] = engine_squares(squares);
-
+    let [boundary_squares, king_location] = engine_squares(squares,player);
+    pinned_pieces(boundary_squares, king_location, player);
     var legal_boards = [];
     for (var i = 0; i < 120; i++) {
         /* Check for piece */
@@ -36,8 +36,7 @@ function engine_squares(squares) {
     let engine_squares = Array(120).fill(null);
     let count = 0;
     let index = 0;
-    let white_king_location = null;
-    let black_king_location = null;
+    let king_location = null;
 
     for (var i = 0; i < 12; i++) {
         for (var y = 0; y<10; y++) {
@@ -48,20 +47,14 @@ function engine_squares(squares) {
             }
             else {
                 engine_squares[index] = squares[count];
-
                 if (squares[count] !== null && squares[count].name === "King") {
-                    if (squares[count].player === 'white') {
-                        white_king_location = index;
-                    }
-                    else {
-                        black_king_location = index;
-                    }
+                    king_location = index;
                 }
                 count = count + 1;
             }
         }
     }
-    return [engine_squares, white_king_location, black_king_location];
+    return [engine_squares, king_location];
 }
 
 function is_legal(squares, legal_moves) {
@@ -157,6 +150,43 @@ function is_attacked(boundary_squares, square_location, player) {
 
     return is_attacked;
 }
+
+function pinned_pieces(boundary_squares, king_location, player) {
+
+    let pinned_pieces = [];
+
+    let pin_piece = pinned_piece(boundary_squares,[1,1],king_location,player,['Queen','Bishop']);
+    pinned_pieces.push(pin_piece);
+    
+}
+
+function pinned_piece(boundary_squares, pin_direction, king_location, player, piece_types) {
+    let pin_location = direction(pin_direction, king_location, player);
+    let pinned_piece = null;
+    /* Go until you run into a piece or boundary */
+    while (boundary_squares[pin_location] === null) {
+        pin_location = direction(pin_direction, pin_location, player);
+    }
+    /* If you run into same player piece then go until you run into next piece or boundary */
+    if (boundary_squares[pin_location] !== 'boundary' && boundary_squares[pin_location].player === player) {
+        pinned_piece = pin_location;
+        pin_location = direction(pin_direction, pin_location, player);
+        while (boundary_squares[pin_location] === null) {
+            pin_location = direction(pin_direction, pin_location, player);
+        }
+        /* Check if piece on the other end is a bishop or queen */
+        if (boundary_squares[pin_location] !== 'boundary' && boundary_squares[pin_location].player !== player) {
+            for (var i = 0; i < piece_types.length; i++){
+                if (boundary_squares[pin_location].name === piece_types[i]){
+                    console.log('pinned')
+                    return [pinned_piece, pin_direction];
+                }
+            }
+        }
+    }
+}
+
+
 
 function pawn_moves(squares, location, player) {
     let legal_boards = []
@@ -428,6 +458,45 @@ function squares_repr(squares) {
         }
     }
     return squares.toString();
+}
+
+function direction(directions, location, player) {
+    let x = directions[0];
+    let y = directions[1];
+
+    let up_right = right(1, forward(1, location, player), player);
+    let up_left = left(1, forward(1, location, player), player);
+    let down_right = right(1, back(1, location, player), player);
+    let down_left = left(1, back(1, location, player), player);
+    let up = forward(1, location, player);
+    let down = back(1, location, player);
+    let move_right = right(1, location, player);
+    let move_left = left(1, location, player);
+
+    if (x === 0 && y === 1) {
+        return up;
+    }
+    else if (x === -1 && y === 1) {
+        return up_left;
+    }
+    else if (x === 1 && y === 1) {
+        return up_right;
+    }
+    else if (x === 1 && y === 0) {
+        return move_right;
+    }
+    else if (x === -1 && y === 0) {
+        return move_left;
+    }
+    else if (x === 1 && y === -1) {
+        return down_right;
+    }
+    else if (x === -1 && y === -1) {
+        return down_left;
+    }
+    else if (x === 0 && y === -1) {
+        return down;
+    }
 }
 
 /* Abstact away difference between black and white moves. All from perspective of player. */

@@ -5,8 +5,8 @@ import HTML5Backend from 'react-dnd-html5-backend';
 import ReactPiece from './DragPiece';
 import DropSquare from './DropSquare';
 import { initialize_board, make_move } from './Pieces.js';
-import { legal_moves, is_legal } from './Engine';
-import { tests } from './Tests';
+import { legal_moves, is_legal } from './ChessMoves';
+//import { tests } from './Tests';
 
 
 class Chess extends Component {
@@ -16,7 +16,7 @@ class Chess extends Component {
       history: [{squares: initialize_board()}],
       player: 'white',
       drag_end: null,
-      test:tests()
+      //test:tests()
     }
   }
   back() {
