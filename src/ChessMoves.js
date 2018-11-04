@@ -187,20 +187,12 @@ function king_moves(squares, location, player) {
     let legal_boards = [];
 
     let king = squares[location];
-    let up = forward(1, location, player);
-    let up_right = right(1, forward(1, location, player), player);
-    let up_left = left(1, forward(1, location, player), player);
-    let move_left = left(1, location, player);
-    let move_right = right(1, location, player);
-    let down_right = right(1, back(1, location, player), player);
-    let down_left = left(1, back(1, location, player), player);
-    let down = forward(1, location, player);
 
     /* Take King off the board for calculating normal move attacking squares */
     let king_squares = squares.slice();
     king_squares[location] = null;
 
-    let moves = [up, up_right, up_left, move_left, move_right, down_right, down_left, down];
+    let moves = get_king_moves(location, player);
 
     /* Regular Moves (non castling) */
     for (var i = 0; i < moves.length; i++) {
@@ -226,25 +218,25 @@ function king_moves(squares, location, player) {
 
     if (!king.has_moved && !is_attacked(squares,location,player)[0]) {
         /* White Kingside */
-        if (location === white_king_start && !squares[white_kingside_rook].has_moved && squares[white_king_start + 1] === null && squares[white_king_start + 2] === null ) {
+        if (location === white_king_start && squares[white_kingside_rook] !== null && !squares[white_kingside_rook].has_moved && squares[white_king_start + 1] === null && squares[white_king_start + 2] === null ) {
             if (!is_attacked(squares,white_king_start + 1,player)[0] && !is_attacked(squares,white_king_start + 2,player)[0]) {
                 legal_boards.push(castle(king, white_king_start, white_king_start + 2, squares[white_kingside_rook], white_kingside_rook, white_kingside_rook-2, squares));
             }
         }
         /* Black Kingside */
-        if (location === black_king_start && !squares[black_kingside_rook].has_moved && squares[black_king_start + 1] === null && squares[black_king_start + 2] === null) {
+        if (location === black_king_start && squares[black_kingside_rook] !== null && !squares[black_kingside_rook].has_moved && squares[black_king_start + 1] === null && squares[black_king_start + 2] === null) {
             if (!is_attacked(squares,black_king_start + 1,player)[0] && !is_attacked(squares,black_king_start + 2,player)[0]) {
                 legal_boards.push(castle(king, black_king_start, black_king_start + 2, squares[black_kingside_rook], black_kingside_rook, black_kingside_rook - 2, squares));
             }
         }
         /* White Queenside */
-        if (location === white_king_start && !squares[white_queenside_rook].has_moved && squares[white_king_start - 1] === null && squares[white_king_start - 2] === null && squares[white_king_start - 3] === null) {
+        if (location === white_king_start && squares[white_queenside_rook] !== null && !squares[white_queenside_rook].has_moved && squares[white_king_start - 1] === null && squares[white_king_start - 2] === null && squares[white_king_start - 3] === null) {
             if (!is_attacked(squares,white_king_start - 1,player)[0] && !is_attacked(squares,white_king_start - 2,player)[0]) {
             legal_boards.push(castle(king, white_king_start, white_king_start - 2, squares[white_queenside_rook], white_queenside_rook, white_queenside_rook + 3, squares));
             }
         }
         /* Black Queenside */
-        if (location === black_king_start && !squares[black_queenside_rook].has_moved && squares[black_king_start - 1] === null && squares[black_king_start - 2] === null && squares[black_king_start - 3] === null) {
+        if (location === black_king_start && squares[black_queenside_rook] !== null && !squares[black_queenside_rook].has_moved && squares[black_king_start - 1] === null && squares[black_king_start - 2] === null && squares[black_king_start - 3] === null) {
             if (!is_attacked(squares,black_king_start - 1,player)[0] && !is_attacked(squares,black_king_start - 2,player)[0]) {
                 legal_boards.push(castle(king, black_king_start, black_king_start - 2, squares[black_queenside_rook], black_queenside_rook, black_queenside_rook + 3, squares));
             }
@@ -479,7 +471,7 @@ function get_king_moves(location,player) {
     let move_right = right(1, location, player);
     let down_right = right(1, back(1, location, player), player);
     let down_left = left(1, back(1, location, player), player);
-    let down = forward(1, location, player);
+    let down = back(1, location, player);
 
     let moves = [up, up_right, up_left, move_left, move_right, down_right, down_left, down];
     return moves;
@@ -490,7 +482,7 @@ function make_move(piece, start, end, squares) {
     squares = squares.slice();
     squares[start] = null;
     squares[end] = piece;
-    return [squares, [start, end, piece]];
+    return [squares, [start, end, piece, {'standard': true}]];
 }
 /* Castling Requires special move making */
 function castle(king, king_start, king_end, rook, rook_start, rook_end, squares) {
@@ -500,7 +492,7 @@ function castle(king, king_start, king_end, rook, rook_start, rook_end, squares)
     squares[king_end] = king;
     squares[rook_end] = rook;
 
-    return [squares, [king_start, king_end, king]];
+    return [squares, [king_start, king_end, king,{'castle': [rook_start, rook_end, rook]}]];
 }
 /* En Passant requires special move making */
 function en_passant(piece, start, end, captured_location, squares) {
@@ -509,7 +501,7 @@ function en_passant(piece, start, end, captured_location, squares) {
     squares[end] = piece;
     squares[captured_location] = null;
 
-    return [squares, [start, end, piece]];
+    return [squares, [start, end, piece, {'en_passant': captured_location}]];
 }
 
 /* Abstact away difference between black and white moves. All from perspective of player. */
@@ -618,6 +610,27 @@ function engine_squares(squares) {
     }
     return [engine_squares, white_king_location, black_king_location];
 }
+/* Turn padded board back into 64 Square board */
+function normal_squares(engine_squares) {
+    let squares = Array(64).fill(null);
+    let count = 0;
+    let index = 0;
+
+    for (var i = 0; i < 12; i++) {
+        for (var y = 0; y<10; y++) {
+            /*if boundary square*/
+            index=i*10+y;
+            if (y === 0 || y === 9 || i === 0 || i === 1 || i === 10 || i === 11) {
+                //do nothing
+            }
+            else {
+                squares[count] = engine_squares[index];
+                count = count + 1;
+            }
+        }
+    }
+    return squares;
+}
 
 /* Represent board as a string for comparisons */
 function squares_repr(squares) {
@@ -630,4 +643,4 @@ function squares_repr(squares) {
     return squares_rep.toString();
 }
 
-export {legal_moves, is_legal}
+export {legal_moves, is_legal, engine_squares, normal_squares}

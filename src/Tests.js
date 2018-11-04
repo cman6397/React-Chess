@@ -1,4 +1,5 @@
-import { initialize_board, make_move} from './Pieces.js';
+import { initialize_board } from './Pieces.js';
+import { make_engine_move } from './Engine.js';
 import { legal_moves} from './ChessMoves';
 
 /* Compare possible move generation to known possible move generation */
@@ -17,11 +18,7 @@ function test() {
         let current_board = possible_moves[i][0];
         let current_move = possible_moves[i][1];
 
-        let start = current_move[0];
-        let end = current_move[1];
-        let piece_copy = JSON.parse(JSON.stringify(current_move[2]));
-
-        make_move(start,end,current_board,piece_copy)
+        make_engine_move(current_board, current_move)
 
         response_positions = response_positions.concat(legal_moves(current_board, 'black'));
     }

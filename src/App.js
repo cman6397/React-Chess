@@ -6,7 +6,8 @@ import ReactPiece from './DragPiece';
 import DropSquare from './DropSquare';
 import { initialize_board, make_move } from './Pieces.js';
 import { legal_moves, is_legal } from './ChessMoves';
-//import { test } from './Tests';
+import { test } from './Tests';
+import { make_engine_move } from './Engine';
 
 
 class Chess extends Component {
@@ -16,7 +17,7 @@ class Chess extends Component {
       history: [{squares: initialize_board()}],
       player: 'white',
       drag_end: null,
-      //test:test()
+      test:test()
     }
   }
   back() {
@@ -34,6 +35,23 @@ class Chess extends Component {
       player:player
     });
   }
+
+  engine_move() {
+    const history = this.state.history.slice();
+    const squares = history[history.length - 1].squares.slice();
+    let player = this.state.player;
+
+    let possible_moves = legal_moves(squares, player);
+    let new_squares = make_engine_move(squares, possible_moves[0][1]);
+
+    (player === 'white') ? player = 'black' : player = 'white';
+
+    this.setState({
+      history: history.concat([{squares: new_squares}]),
+      player:player
+    });
+  }
+
   handle_drop(id) {
     this.setState({drag_end: id});
   }
@@ -70,7 +88,12 @@ class Chess extends Component {
     <div className = 'game_container'>
       <button 
       className = "back_button" 
-      onClick={() => this.back()} > Back </button>
+      onClick={() => this.back()} > Back 
+      </button>
+      <button 
+      className = "engine_button" 
+      onClick={() => this.engine_move()} > Engine Move
+      </button>
       <div className = 'board_container' >
         <Board 
           squares = {current_squares}
