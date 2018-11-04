@@ -46,26 +46,20 @@ class Chess extends Component {
     let player = this.state.player;
     /*Make copy of piece */
     let piece_copy = JSON.parse(JSON.stringify(squares[drag_start]));
-
     /* get legal moves */
     let possible_moves = legal_moves(squares, player);
     /* make move */
     make_move(drag_start, drag_end, squares, piece_copy);
-    /*Make sure move was legal.  If not legal exit and don't change states.*/
+    /*Make sure move was legal.*/
+    if (is_legal(squares, possible_moves)){
+      (player === 'white') ? player = 'black' : player = 'white';
 
-    if (!is_legal(squares,possible_moves)){
-      return;
+      this.setState({
+        history: history.concat([{squares: squares}]),
+        drag_end: null,
+        player: player
+      });
     }
-
-    (player === 'white') ? player = 'black' : player = 'white';
-
-    this.setState({
-      history: history.concat([{
-        squares: squares,
-      }]),
-      drag_end: null,
-      player: player
-    });
   };
 
   render() {

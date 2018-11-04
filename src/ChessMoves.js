@@ -43,7 +43,6 @@ function legal_moves(squares, player) {
     if (in_check) {
         legal_boards = in_check_handler(boundary_squares, legal_boards, king_location, attacking_pieces, player);
     }
-
     return legal_boards;
 }
 
@@ -259,7 +258,7 @@ function in_check_handler(squares, legal_boards, king_location, attacking_piece,
     let piece_types = [squares[attacking_piece_location].name];
 
     for (var i = legal_boards.length - 1; i >= 0; i--) {
-        if (direction_is_attacked(legal_boards[i][0], move_direction, king_location, player, piece_types) !== null && legal_boards[i][king_location] !== null) { 
+        if (direction_is_attacked(legal_boards[i][0], move_direction, king_location, player, piece_types) !== null && legal_boards[i][0][king_location] !== null) { 
             legal_boards.splice(i, 1);
         }
     }
@@ -424,14 +423,11 @@ function moves_and_captures(squares, move_direction, start_location, player, pie
     let legal_boards = [];
     let end_location = direction(move_direction, start_location, player);
 
-    if (squares[end_location] === 'boundary') {
-        return [];
-    }
     while (squares[end_location] === null) {
         legal_boards.push(make_move(piece, start_location, end_location, squares));
         end_location = direction(move_direction, end_location, player);
     }
-    if (squares[end_location].player !== player) {
+    if (squares[end_location] !== 'boundary' && squares[end_location].player !== player) {
         legal_boards.push(make_move(piece, start_location, end_location, squares));
     }
     return legal_boards;
@@ -588,13 +584,13 @@ function engine_squares(squares) {
 
 /* Represent board as a string for comparisons */
 function squares_repr(squares) {
-    squares = squares.slice();
-    for (var i = 0; i < legal_moves.length; i++) {
-        if (squares[i] != null && squares[i] !== 'boundary') {
-            squares[i] = squares[i].name;
+    let squares_rep = squares.slice();
+    for (var i = 0; i < squares_rep.length; i++) {
+        if (squares_rep[i] != null && squares_rep[i] !== 'boundary') {
+            squares_rep[i] = squares_rep[i].name;
         }
     }
-    return squares.toString();
+    return squares_rep.toString();
 }
 
 export {legal_moves, is_legal}
