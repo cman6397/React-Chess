@@ -1,42 +1,33 @@
-//These are tests for the Engine and move validation
-import { Pawn,Rook,Knight,Bishop,King,Queen,initialize_board, make_move } from './Pieces.js';
-import { legal_moves, is_legal } from './Engine';
+import { initialize_board, make_move} from './Pieces.js';
+import { legal_moves} from './ChessMoves';
 
-function random_position() {
-    var board = Array(64).fill(null)
-    for (var k = 0; k < 5; k++) {
-        board[k + 8] = new Pawn('black');
-        board[k + 48] = new Pawn('white');
-    };
-
-    var color = 'black';
-    for (var i = 0; i < 2; i++) {
-        if (i === 1) {
-            color = 'white'
-        }
-        board[i * 56] = new Rook(color);
-        board[i * 56 + 7] = new Rook(color);
-        board[i * 56 + 1] = new Knight(color);
-        board[i * 56 + 6] = new Knight(color);
-        board[i * 56 + 2] = new Bishop(color);
-        board[i * 56 + 5] = new Bishop(color);
-        board[i * 56 + 3] = new Queen(color);
-        board[i * 56 + 4] = new King(color);
-    }
-    return board
-}
-
-function tests() {
+/* Compare possible move generation to known possible move generation */
+function test() {
     /* Initialize empty board.*/
     var t0 = performance.now();
-    let test_squares = random_position();
+    let test_squares = initialize_board();
     let possible_moves = legal_moves(test_squares, 'white');
-    for (var i = 0; i < 1000000; i++) {
-        possible_moves = legal_moves(test_squares, 'white');
+
+    let total_positions = possible_moves.length;
+    console.log(total_positions)
+
+    let response_positions = []
+
+    for (var i = 0; i < possible_moves.length; i++) {
+        let current_board = possible_moves[i][0];
+        let current_move = possible_moves[i][1];
+
+        let start = current_move[0];
+        let end = current_move[1];
+        let piece_copy = JSON.parse(JSON.stringify(current_move[2]));
+
+        make_move(start,end,current_board,piece_copy)
+
+        response_positions = response_positions.concat(legal_moves(current_board, 'black'));
     }
+    total_positions = total_positions + response_positions.length
     var t1 = performance.now();
-    console.log((t1-t0)/1000)
+    console.log((t1-t0)/1000, total_positions)
 }
 
-
-export { tests }
+export { test }

@@ -11,6 +11,7 @@ function legal_moves(squares, player) {
         return king_moves(boundary_squares, king_location, player);
     }
     var legal_boards = [];
+
     for (var i = 0; i < 120; i++) {
         /* Skip empty and boundary squares */
         if (boundary_squares[i] !== null && boundary_squares[i] !== 'boundary') {
@@ -42,17 +43,17 @@ function legal_moves(squares, player) {
     if (in_check) {
         legal_boards = in_check_handler(boundary_squares, legal_boards, king_location, attacking_pieces, player);
     }
-    
+
     return legal_boards;
 }
 
 
 /* Check if a given move is within the legal moves found */
-function is_legal(squares, legal_moves) {
+function is_legal(squares, legal_boards) {
     let boundary_squares = engine_squares(squares)[0];
     let is_legal = false;
-    for (var i = 0; i < legal_moves.length; i++) {
-        if (squares_repr(legal_moves[i]) === squares_repr(boundary_squares)) {
+    for (var i = 0; i < legal_boards.length; i++) {
+        if (squares_repr(legal_boards[i][0]) === squares_repr(boundary_squares)) {
             is_legal = true;
         }
     }
@@ -128,7 +129,7 @@ function knight_moves(squares, location, player, pinned_pieces) {
         if (squares[moves[i]] === null && squares[moves[i]] !== 'boundary') {
             legal_boards.push(make_move(knight, location, moves[i], squares));
         }
-        else if (squares[moves[i]].player !== player) {
+        else if (squares[moves[i]].player !== player && squares[moves[i]] !== 'boundary') {
             legal_boards.push(make_move(knight, location, moves[i], squares));
         }
     }
@@ -258,7 +259,7 @@ function in_check_handler(squares, legal_boards, king_location, attacking_piece,
     let piece_types = [squares[attacking_piece_location].name];
 
     for (var i = legal_boards.length - 1; i >= 0; i--) {
-        if (direction_is_attacked(legal_boards[i], move_direction, king_location, player, piece_types) !== null && legal_boards[i][king_location] !== null) { 
+        if (direction_is_attacked(legal_boards[i][0], move_direction, king_location, player, piece_types) !== null && legal_boards[i][king_location] !== null) { 
             legal_boards.splice(i, 1);
         }
     }
@@ -456,7 +457,7 @@ function make_move(piece, start, end, squares) {
     squares = squares.slice();
     squares[start] = null;
     squares[end] = piece;
-    return squares;
+    return [squares, [start, end, piece]];
 }
 /* Castling Requires special move making */
 function castle(king, king_start, king_end, rook, rook_start, rook_end, squares) {
@@ -466,7 +467,7 @@ function castle(king, king_start, king_end, rook, rook_start, rook_end, squares)
     squares[king_end] = king;
     squares[rook_end] = rook;
 
-    return squares;
+    return [squares, [king_start, king_end, king]];
 }
 /* En Passant requires special move making */
 function en_passant(piece, start, end, captured_location, squares) {
@@ -475,7 +476,7 @@ function en_passant(piece, start, end, captured_location, squares) {
     squares[end] = piece;
     squares[captured_location] = null;
 
-    return squares;
+    return [squares, [start, end, piece]];
 }
 
 /* Abstact away difference between black and white moves. All from perspective of player. */
