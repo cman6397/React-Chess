@@ -196,18 +196,22 @@ function king_moves(squares, location, player) {
     let down_left = left(1, back(1, location, player), player);
     let down = forward(1, location, player);
 
+    /* Take King off the board for calculating normal move attacking squares */
+    let king_squares = squares.slice();
+    king_squares[location] = null;
+
     let moves = [up, up_right, up_left, move_left, move_right, down_right, down_left, down];
 
     /* Regular Moves (non castling) */
     for (var i = 0; i < moves.length; i++) {
         /* Move to empty square */
         if (squares[moves[i]] === null) {
-            if (!is_attacked(squares,moves[i],player)[0]) {
+            if (!is_attacked(king_squares,moves[i],player)[0]) {
                 legal_boards.push(make_move(king, location, moves[i], squares));
             }
         }
         /* Capture */
-        else if (squares[moves[i]] !== 'boundary' && squares[moves[i]].player !== player && !is_attacked(squares,moves[i],player)[0]) {
+        else if (squares[moves[i]] !== 'boundary' && squares[moves[i]].player !== player && !is_attacked(king_squares,moves[i],player)[0]) {
             legal_boards.push(make_move(king, location, moves[i], squares));
         }
     }
