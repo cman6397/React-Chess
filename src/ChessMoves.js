@@ -258,7 +258,13 @@ function in_check_handler(squares, legal_boards, king_location, attacking_piece,
     let piece_types = [squares[attacking_piece_location].name];
 
     for (var i = legal_boards.length - 1; i >= 0; i--) {
-        if (direction_is_attacked(legal_boards[i][0], move_direction, king_location, player, piece_types) !== null && legal_boards[i][0][king_location] !== null) { 
+        /* Knight or Pawn attacks must be dodged or taken*/
+        if (move_direction === "knight_attack" || move_direction === "pawn_attack") {
+            if (legal_boards[i][0][attacking_piece_location].player !== player && legal_boards[i][0][king_location] !== null) {
+                legal_boards.splice(i, 1);
+            }
+        }
+        else if (direction_is_attacked(legal_boards[i][0], move_direction, king_location, player, piece_types) !== null && legal_boards[i][0][king_location] !== null) { 
             legal_boards.splice(i, 1);
         }
     }
@@ -296,6 +302,7 @@ function is_attacked(boundary_squares, square_location, player) {
 
     let pawn_moves = [up_right, up_left];
     let knight_moves = get_knight_moves(square_location, player);
+    let king_moves = get_king_moves(square_location,player);
     let diag_directions = [[1,1],[-1,1],[1,-1],[-1,-1]];
     let straight_directions = [[0,1],[0,-1],[-1,0],[1,0]];
 
@@ -332,7 +339,17 @@ function is_attacked(boundary_squares, square_location, player) {
         if (end_piece !== 'boundary' && end_piece !== null){
             if(end_piece.player !== player && end_piece.name === 'Pawn') {
                 is_attacked = true;
-                attacking_pieces[attacking_piece[0]] = 'pawn_attack';
+                attacking_pieces[pawn_moves[i]] = 'pawn_attack';
+            }
+        }
+    }
+
+    /* Check if square is under attack by king. */
+    for (i = 0; i < king_moves.length; i++) {
+        let end_piece = boundary_squares[king_moves[i]];
+        if (end_piece !== 'boundary' && end_piece !== null){
+            if(end_piece.player !== player && end_piece.name === 'King') {
+                is_attacked = true;
             }
         }
     }
@@ -445,6 +462,21 @@ function get_knight_moves(location,player) {
     let left_down = left(2, back(1, location, player), player);
 
     let moves = [up_right, up_left, down_right, down_left, right_up, right_down, left_up, left_down];
+    return moves;
+}
+/* Get King move directions */
+function get_king_moves(location,player) {
+
+    let up = forward(1, location, player);
+    let up_right = right(1, forward(1, location, player), player);
+    let up_left = left(1, forward(1, location, player), player);
+    let move_left = left(1, location, player);
+    let move_right = right(1, location, player);
+    let down_right = right(1, back(1, location, player), player);
+    let down_left = left(1, back(1, location, player), player);
+    let down = forward(1, location, player);
+
+    let moves = [up, up_right, up_left, move_left, move_right, down_right, down_left, down];
     return moves;
 }
 
