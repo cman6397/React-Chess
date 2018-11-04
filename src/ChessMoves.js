@@ -2,6 +2,11 @@ function legal_moves(squares, player) {
     let [boundary_squares, white_king_location, black_king_location] = engine_squares(squares,player);
     let king_location = (player === 'white') ? white_king_location : black_king_location;
     let pinned_pieces = get_pinned_pieces(boundary_squares, king_location, player);
+    let [in_check, attacking_pieces] = is_attacked(boundary_squares, king_location, player);
+    /* Only King can move in double check */
+    if (in_check && Object.keys(attacking_pieces).length > 1) {
+        return king_moves(boundary_squares, king_location, player);
+    }
     var legal_boards = [];
     for (var i = 0; i < 120; i++) {
         /* Check for piece */
@@ -30,8 +35,14 @@ function legal_moves(squares, player) {
             }
         }
     }
+    
+    if (in_check) {
+        legal_boards = in_check_handler(boundary_squares, legal_boards, king_location, attacking_pieces, player);
+    }
+    
     return legal_boards;
 }
+
 /* Add padding around board so moves don't wrap. Get king locations while looping. */
 function engine_squares(squares) {
     let engine_squares = Array(120).fill(null);
@@ -75,73 +86,76 @@ function is_legal(squares, legal_moves) {
     return is_legal;
 }
 
+/* Eliminate moves where king is still in check from originally checking piece*/
+function in_check_handler(squares, legal_boards, king_location, attacking_piece, player) {
+    let attacking_piece_location = Object.keys(attacking_piece)[0];
+    let move_direction = attacking_piece[attacking_piece_location];
+    let piece_types = [squares[attacking_piece_location].name];
+
+    for (var i = legal_boards.length - 1; i >= 0; i--) {
+        if (direction_is_attacked(legal_boards[i], move_direction, king_location, player, piece_types) !== null && legal_boards[i][king_location] !== null) { 
+            legal_boards.splice(i, 1);
+        }
+    }
+
+    return legal_boards;
+}
+
+function direction_is_attacked(squares, move_direction, start_location, player, piece_types){
+    let end_location = direction(move_direction,start_location,player);
+    let attacking_piece = null;
+
+    while (squares[end_location] === null) {
+        end_location = direction(move_direction,end_location,player);
+    }
+    let end_piece = squares[end_location];
+    if (end_piece !== 'boundary' && end_piece.player !== player){
+        for (var i = 0; i < piece_types.length; i++) {
+            if (piece_types[i] === end_piece.name) {
+                attacking_piece = [end_location, move_direction];
+            }
+        }
+    }
+    return attacking_piece;
+}
+
 function is_attacked(boundary_squares, square_location, player) {
 
     let is_attacked = false;
-    let king_location = square_location;
+    let attacking_pieces = {};
+    let attacking_piece = null;
 
-    let up_right = right(1, forward(1, king_location, player), player);
-    let up_left = left(1, forward(1, king_location, player), player);
-    let down_right = right(1, back(1, king_location, player), player);
-    let down_left = left(1, back(1, king_location, player), player);
-    let up = forward(1, king_location, player);
-    let down = back(1, king_location, player);
-    let move_right = right(1, king_location, player);
-    let move_left = left(1, king_location, player);
+    let up_right = right(1, forward(1, square_location, player), player);
+    let up_left = left(1, forward(1, square_location, player), player);
 
     let pawn_moves = [up_right, up_left];
-    let knight_moves = get_knight_moves(king_location, player)
+    let knight_moves = get_knight_moves(square_location, player);
+    let diag_directions = [[1,1],[-1,1],[1,-1],[-1,-1]];
+    let straight_directions = [[0,1],[0,-1],[-1,0],[1,0]];
 
-    while (boundary_squares[up_right] === null) {
-        up_right = right(1, forward(1, up_right, player), player)
-    }
-    while (boundary_squares[up_left] === null) {
-        up_left = left(1, forward(1, up_left, player), player)
-    }
-    while (boundary_squares[down_right] === null) {
-        down_right = right(1, back(1, down_right, player), player)
-    }
-    while (boundary_squares[down_left] === null) {
-        down_left = left(1, back(1, down_left, player), player)
-    }
-    while (boundary_squares[up] === null) {
-        up = forward(1, up, player)
-    }
-    while (boundary_squares[down] === null) {
-        down = back(1, down, player)
-    }
-    while (boundary_squares[move_right] === null) {
-        move_right = right(1, move_right, player)
-    }
-    while (boundary_squares[move_left] === null) {
-        move_left = left(1, move_left, player)
-    }
-
-    let diag_moves = [up_right, up_left, down_right, down_left];
-    let straight_moves = [up, down, move_left, move_right];
-
-    var i = 0;
-
-    /* Check if square is under attack by diagonal pieces*/
-    for (i = 0; i < diag_moves.length; i++) {
-        let end_piece = boundary_squares[diag_moves[i]]
-        if (end_piece !== 'boundary' && end_piece.player !== player && (end_piece.name === 'Queen' || end_piece.name === 'Bishop')) {
-           is_attacked = true;
+    for (var i = 0; i < diag_directions.length; i++) {
+        attacking_piece = direction_is_attacked(boundary_squares,diag_directions[i],square_location,player,['Queen', 'Bishop'])
+        if (attacking_piece !== null) {
+            is_attacked = true;
+            attacking_pieces[attacking_piece[0]] = attacking_piece[1];
         }
     }
-    /* Check if square is under attack by straight pieces*/
-    for (i = 0; i < straight_moves.length; i++) {
-        let end_piece = boundary_squares[straight_moves[i]]
-        if (end_piece !== 'boundary' && end_piece.player !== player && (end_piece.name === 'Queen' || end_piece.name === 'Rook')) {
-           is_attacked = true;
+
+    for (i = 0; i < straight_directions.length; i++) {
+        attacking_piece = direction_is_attacked(boundary_squares,straight_directions[i],square_location,player,['Queen', 'Rook'])
+        if (attacking_piece !== null) {
+            is_attacked = true;
+            attacking_pieces[attacking_piece[0]] = attacking_piece[1];
         }
     }
+
     /* Check if square is under attack by knights*/
     for (i = 0; i < knight_moves.length; i++) {
         let end_piece = boundary_squares[knight_moves[i]]
         if (end_piece !== 'boundary' && end_piece !== null){
             if(end_piece.player !== player && end_piece.name === 'Knight') {
                 is_attacked = true;
+                attacking_pieces[knight_moves[i]] = 'knight_attack';
             }
         }
     }
@@ -151,30 +165,30 @@ function is_attacked(boundary_squares, square_location, player) {
         if (end_piece !== 'boundary' && end_piece !== null){
             if(end_piece.player !== player && end_piece.name === 'Pawn') {
                 is_attacked = true;
+                attacking_pieces[attacking_piece[0]] = 'pawn_attack';
             }
         }
     }
 
-    return is_attacked;
+    return [is_attacked, attacking_pieces];
 }
 
 function get_pinned_pieces(boundary_squares, king_location, player) {
     let pinned_pieces = {};
     let pin_info = null;
-   
-    for (var x = -1; x <= 1; x++) {
-        for (var y = -1; y <= 1; y++) {
-            if (!(x === 0 && y === 0)) {
-                if (x === 0 || y === 0) {
-                    pin_info = get_pinned_piece(boundary_squares,[x,y],king_location,player,['Queen','Rook']);
-                }
-                else {
-                    pin_info = get_pinned_piece(boundary_squares,[x,y],king_location,player,['Queen','Bishop']);
-                }
-                if (pin_info !== null) {
-                    pinned_pieces[pin_info[0]] = pin_info[1];
-                }
-            }
+    let pinned_directions = [[0,1],[0,-1],[-1,0],[1,0],[1,1],[-1,1],[1,-1],[-1,-1]];
+    let pin_direction = null;
+
+    for (var x = 0; x < pinned_directions.length; x++) {
+        pin_direction = pinned_directions[x];
+        if (pin_direction[0] === 0 || pin_direction[1] === 0) {
+            pin_info = get_pinned_piece(boundary_squares,pin_direction,king_location,player,['Queen','Rook']);
+        }
+        else {
+            pin_info = get_pinned_piece(boundary_squares,pin_direction,king_location,player,['Queen','Bishop']);
+        }
+        if (pin_info !== null) {
+            pinned_pieces[pin_info[0]] = pin_info[1];
         }
     }
     return pinned_pieces;
@@ -214,7 +228,7 @@ function pinned_pawn_move(pawn, pawn_location, pawn_end_location, pinned_pieces,
     if (pawn_location in pinned_pieces) {
         pin_direction = pinned_pieces[pawn_location];
         inverse_direction = [pin_direction[0]*-1, pin_direction[1]*-1];
-
+        /* Can only move towards King or away from king when pinned */
         if (move_direction.toString() === pin_direction.toString() || move_direction.toString() === inverse_direction.toString()) {
             if ( is_en_passant) {
                 legal_boards.push(en_passant(pawn, pawn_location, pawn_end_location, en_passant_capture, squares));
@@ -336,6 +350,10 @@ function moves_and_captures(squares, move_direction, start_location, player, pie
     let legal_boards = [];
     let end_location = direction(move_direction, start_location, player);
 
+    if (squares[end_location] === 'boundary') {
+        return [];
+    }
+
     while (squares[end_location] === null) {
         legal_boards.push(make_move(piece, start_location, end_location, squares));
         end_location = direction(move_direction, end_location, player);
@@ -351,6 +369,7 @@ function bishop_moves(squares, location, player, pinned_pieces) {
     let bishop = squares[location];
     let pin_direction = null;
     let inverse_direction = null;
+    let boards = null;
 
     let moves = [[1,1],[-1,1],[1,-1],[-1,-1]]
 
@@ -413,12 +432,12 @@ function king_moves(squares, location, player) {
     for (var i = 0; i < moves.length; i++) {
         /* Move */
         if (squares[moves[i]] === null) {
-            if (!is_attacked(squares,moves[i],player)) {
+            if (!is_attacked(squares,moves[i],player)[0]) {
                 legal_boards.push(make_move(king, location, moves[i], squares));
             }
         }
         /* Capture */
-        else if (squares[moves[i]] !== 'boundary' && squares[moves[i]].player !== player && !is_attacked(squares,moves[i],player)) {
+        else if (squares[moves[i]] !== 'boundary' && squares[moves[i]].player !== player && !is_attacked(squares,moves[i],player)[0]) {
             legal_boards.push(make_move(king, location, moves[i], squares))
         }
     }
@@ -431,28 +450,28 @@ function king_moves(squares, location, player) {
     let white_king_start = 95;
     let black_king_start = 25;
 
-    if (!king.has_moved && !is_attacked(squares,location,player)) {
+    if (!king.has_moved && !is_attacked(squares,location,player)[0]) {
         /* White Kingside */
         if (location === white_king_start && !squares[white_kingside_rook].has_moved && squares[white_king_start + 1] === null && squares[white_king_start + 2] === null ) {
-            if (!is_attacked(squares,white_king_start + 1,player) && !is_attacked(squares,white_king_start + 2,player)) {
+            if (!is_attacked(squares,white_king_start + 1,player)[0] && !is_attacked(squares,white_king_start + 2,player)[0]) {
                 legal_boards.push(castle(king, white_king_start, white_king_start + 2, squares[white_kingside_rook], white_kingside_rook, white_kingside_rook-2, squares))
             }
         }
         /* Black Kingside */
         if (location === black_king_start && !squares[black_kingside_rook].has_moved && squares[black_king_start + 1] === null && squares[black_king_start + 2] === null) {
-            if (!is_attacked(squares,black_king_start + 1,player) && !is_attacked(squares,black_king_start + 2,player)) {
+            if (!is_attacked(squares,black_king_start + 1,player)[0] && !is_attacked(squares,black_king_start + 2,player)[0]) {
                 legal_boards.push(castle(king, black_king_start, black_king_start + 2, squares[black_kingside_rook], black_kingside_rook, black_kingside_rook - 2, squares))
             }
         }
         /* White Queenside */
         if (location === white_king_start && !squares[white_queenside_rook].has_moved && squares[white_king_start - 1] === null && squares[white_king_start - 2] === null && squares[white_king_start - 3] === null) {
-            if (!is_attacked(squares,white_king_start - 1,player) && !is_attacked(squares,white_king_start - 2,player)) {
+            if (!is_attacked(squares,white_king_start - 1,player)[0] && !is_attacked(squares,white_king_start - 2,player)[0]) {
             legal_boards.push(castle(king, white_king_start, white_king_start - 2, squares[white_queenside_rook], white_queenside_rook, white_queenside_rook + 3, squares))
             }
         }
         /* Black Queenside */
         if (location === black_king_start && !squares[black_queenside_rook].has_moved && squares[black_king_start - 1] === null && squares[black_king_start - 2] === null && squares[black_king_start - 3] === null) {
-            if (!is_attacked(squares,black_king_start - 1,player) && !is_attacked(squares,black_king_start - 2,player)) {
+            if (!is_attacked(squares,black_king_start - 1,player)[0] && !is_attacked(squares,black_king_start - 2,player)[0]) {
                 legal_boards.push(castle(king, black_king_start, black_king_start - 2, squares[black_queenside_rook], black_queenside_rook, black_queenside_rook + 3, squares))
             }
         }

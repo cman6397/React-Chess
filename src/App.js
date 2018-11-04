@@ -52,6 +52,7 @@ class Chess extends Component {
     /* make move */
     make_move(drag_start, drag_end, squares, piece_copy);
     /*Make sure move was legal.  If not legal exit and don't change states.*/
+
     if (!is_legal(squares,possible_moves)){
       return;
     }
