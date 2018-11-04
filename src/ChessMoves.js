@@ -75,11 +75,11 @@ function pawn_moves(squares, location, player, pinned_pieces) {
     
     /*legal to move 2 spaces forward*/
     if (!pawn.has_moved && squares[forward_two] === null && squares[forward_one] === null) {
-        legal_boards = legal_boards.concat(pinned_pawn_move(pawn, location, forward_two, pinned_pieces,[1,0],squares, false, null));
+        legal_boards = legal_boards.concat(pinned_pawn_move(pawn, location, forward_two, pinned_pieces,[0,1],squares, false, null));
     }
     /*legal to move 1 space ahead*/
     if (squares[forward_one] === null) {
-        legal_boards = legal_boards.concat(pinned_pawn_move(pawn, location, forward_one, pinned_pieces,[1,0],squares, false, null));
+        legal_boards = legal_boards.concat(pinned_pawn_move(pawn, location, forward_one, pinned_pieces,[0,1],squares, false, null));
     }
     /*legal to take left*/
     if (squares[diag_left] !== null && squares[diag_left] !== 'boundary') {
@@ -418,6 +418,7 @@ function pinned_pawn_move(pawn, pawn_location, pawn_end_location, pinned_pieces,
     if (pawn_location in pinned_pieces) {
         pin_direction = pinned_pieces[pawn_location];
         inverse_direction = [pin_direction[0]*-1, pin_direction[1]*-1];
+
         /* Can only move towards King or away from king when pinned */
         if (move_direction.toString() === pin_direction.toString() || move_direction.toString() === inverse_direction.toString()) {
             if ( is_en_passant) {
