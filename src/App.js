@@ -52,10 +52,16 @@ class Chess extends Component {
     const squares = history[history.length - 1].squares.slice();
     let player = this.state.player;
 
-    let possible_moves = legal_moves(squares, player)[0];
-    if (possible_moves.length === 0) {
+    let engine_moves = legal_moves(squares, player)
+    let possible_moves = engine_moves[0];
+
+    if (engine_moves[1] !== null){
+      this.setState({
+        status: engine_moves[1]
+      });
       return;
     }
+
     let move = possible_moves[Math.floor(Math.random() * possible_moves.length)][1];
     let new_squares = make_engine_move(squares, move);
 
