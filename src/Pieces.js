@@ -68,14 +68,14 @@ class King extends Piece {
         super(player, url, 'King')
     }
 }
-
+/*This move generation function is for the UI and it interprets the mouse moves not egine moves */
 function make_move(start, end, squares, piece) {
 
     /*For En passant*/
     if (piece.name === 'Pawn') {
         if (Math.abs(start - end) === 16) {
             piece.just_moved_two = true;
-        }
+				}
         else {
             piece.just_moved_two = false;
             /* En Passant.  Remove pawn to the direct left or right when en passant criteria is satisfied.*/

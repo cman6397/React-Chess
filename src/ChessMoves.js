@@ -1,4 +1,5 @@
 /********************************************** Legal Move Generation and Checking *************************************/
+import {Knight, Bishop, Rook, Queen } from './Pieces.js';
 
 /* Return all legal moves given a board position and the player to move (white or black) */
 function legal_moves(squares, player) {
@@ -43,6 +44,7 @@ function legal_moves(squares, player) {
     if (in_check) {
         legal_boards = in_check_handler(boundary_squares, legal_boards, king_location, attacking_pieces, player);
     }
+
     return legal_boards;
 }
 
@@ -426,7 +428,22 @@ function pinned_pawn_move(pawn, pawn_location, pawn_end_location, pinned_pieces,
             legal_boards.push(en_passant(pawn, pawn_location, pawn_end_location, en_passant_capture, squares));
         }
         else {
-            legal_boards.push(make_move(pawn,pawn_location,pawn_end_location,squares));
+            /*Handle Promotions*/
+            if (pawn_end_location >= 91 || pawn_end_location <= 28) {
+                let knight_piece = new Knight(pawn.player);
+                let bishop_piece = new Bishop(pawn.player);
+                let rook_piece = new Rook(pawn.player);
+                let queen_piece = new Queen(pawn.player);
+
+                let pieces = [knight_piece,bishop_piece,rook_piece,queen_piece];
+
+                for (var k = 0; k < pieces.length; k++) {
+                    legal_boards.push(make_move(pieces[k],pawn_location,pawn_end_location,squares));
+                }
+            }
+            else{
+                legal_boards.push(make_move(pawn,pawn_location,pawn_end_location,squares));
+            }
         }
     }
     return legal_boards;

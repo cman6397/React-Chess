@@ -1,4 +1,4 @@
-import { legal_moves, is_legal, engine_squares, normal_squares } from './ChessMoves';
+import { engine_squares, normal_squares } from './ChessMoves';
 
 /* Engine Make move function for board */
 function make_engine_move(squares64, move) {
