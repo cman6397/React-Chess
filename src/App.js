@@ -6,8 +6,8 @@ import ReactPiece from './DragPiece';
 import DropSquare from './DropSquare';
 import { initialize_board, make_move, Knight, Bishop, Rook, Queen } from './Pieces.js';
 import { legal_moves, is_legal } from './ChessMoves';
-import { make_engine_move } from './Engine';
-//import { test } from './Tests';
+import { make_engine_move_react } from './Engine';
+import { test } from './Tests';
 
 class Chess extends Component {
   constructor(props) {
@@ -17,8 +17,8 @@ class Chess extends Component {
       player: 'white',
       drag_end: null,
       promotion:{class:'hidden',start: null, end: null, player: null},
-      status:null
-      //test:test()
+      status:null,
+      test:test()
     }
   }
   reset() {
@@ -63,7 +63,7 @@ class Chess extends Component {
     }
 
     let move = possible_moves[Math.floor(Math.random() * possible_moves.length)][1];
-    let new_squares = make_engine_move(squares, move);
+    let new_squares = make_engine_move_react(squares, move);
 
     (player === 'white') ? player = 'black' : player = 'white';
 

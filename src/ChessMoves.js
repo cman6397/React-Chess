@@ -664,7 +664,7 @@ function squares_repr(squares) {
     let squares_rep = squares.slice();
     for (var i = 0; i < squares_rep.length; i++) {
         if (squares_rep[i] != null && squares_rep[i] !== 'boundary') {
-            squares_rep[i] = squares_rep[i].name;
+            squares_rep[i] = squares_rep[i].name + squares_rep[i].player;
         }
     }
     return squares_rep.toString();
