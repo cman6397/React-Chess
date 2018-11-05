@@ -23,6 +23,10 @@
   display:inline-block;
 }
 
+.status {
+  font-size:25px;
+}
+
 .board_container {
   width:400px;
   height:400px;
@@ -40,22 +44,36 @@
   padding:10px;
 }
 
-.back_button {
+.reset_button {
   height: 25px;
   width: 50px;
   position: absolute;
   left: 450px;
   top:60px;
   cursor: pointer;
+  font-size:13px;
 
 }
+
+.back_button {
+  height: 25px;
+  width: 50px;
+  position: absolute;
+  left: 395px;
+  top:60px;
+  cursor: pointer;
+  font-size:13px;
+
+}
+
 .engine_button {
   height: 25px;
   width: 100px;
   position: absolute;
-  left: 340px;
+  left: 290px;
   top:60px;
   cursor: pointer;
+  font-size:13px;
 }
 .piece_container {
   position:absolute;

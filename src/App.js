@@ -16,9 +16,19 @@ class Chess extends Component {
       history: [{squares: initialize_board()}],
       player: 'white',
       drag_end: null,
-      promotion:{class:'hidden',start: null, end: null, player: null}
+      promotion:{class:'hidden',start: null, end: null, player: null},
+      status:null
       //test:test()
     }
+  }
+  reset() {
+    this.setState({
+      history: [{squares: initialize_board()}],
+      player: 'white',
+      drag_end: null,
+      promotion:{class:'hidden',start: null, end: null, player: null},
+      status:null
+    });
   }
   back() {
     const history = this.state.history.slice();
@@ -32,7 +42,8 @@ class Chess extends Component {
 
     this.setState({
       history: history,
-      player:player
+      player:player,
+      status:null
     });
   }
 
@@ -41,7 +52,7 @@ class Chess extends Component {
     const squares = history[history.length - 1].squares.slice();
     let player = this.state.player;
 
-    let possible_moves = legal_moves(squares, player);
+    let possible_moves = legal_moves(squares, player)[0];
     if (possible_moves.length === 0) {
       return;
     }
@@ -66,28 +77,14 @@ class Chess extends Component {
     let drag_start = id;
     let drag_end = this.state.drag_end;
     let player = this.state.player;
-    /*Make copy of piece */
     let piece_copy = JSON.parse(JSON.stringify(squares[drag_start]));
-    /* get legal moves */
-    let possible_moves = legal_moves(squares, player);
     /* promotions */
     if ((drag_end < 8 || drag_end > 55) && piece_copy.name === 'Pawn'){
       let promotion = {class:'promotion_container',start: drag_start, end: drag_end, player: player}
       this.setState({promotion:promotion})
       return;
     }
-    /* make move */
-    make_move(drag_start, drag_end, squares, piece_copy);
-    /*Make sure move was legal.*/
-    if (is_legal(squares, possible_moves)){
-      (player === 'white') ? player = 'black' : player = 'white';
-
-      this.setState({
-        history: history.concat([{squares: squares}]),
-        drag_end: null,
-        player: player
-      });
-    }
+    this.change_states(history,squares,player,drag_start,drag_end,piece_copy)
   };
 
   handle_promotion(piece) {
@@ -99,22 +96,29 @@ class Chess extends Component {
     let end = promotion['end'];
     let player = promotion['player'];
 
-    let possible_moves = legal_moves(squares, player);
+    this.change_states(history,squares,player,start,end,piece)
+
+    this.setState({
+      promotion:{class:'hidden',start: null, end: null, player: null}
+    });
+  }
+
+  change_states(history, squares, player, start, end, piece) {
+    let possible_moves = legal_moves(squares, player)[0];
     make_move(start, end, squares, piece);
 
     if (is_legal(squares, possible_moves)){
       (player === 'white') ? player = 'black' : player = 'white';
 
+      let status = legal_moves(squares, player)[1];
+
       this.setState({
         history: history.concat([{squares: squares}]),
         drag_end: null,
-        player: player
+        player: player,
+        status: status
       });
     }
-    this.setState({
-      promotion:{class:'hidden',start: null, end: null, player: null}
-    });
-
   }
 
   render() {
@@ -122,11 +126,14 @@ class Chess extends Component {
     let current_squares = boards[boards.length-1].squares;
     let player = this.state.player;
     let promotion_class = this.state.promotion['class'];
+    let status = this.state.status;
 
     return (
     <div className = 'game_container'>
+    <div className = 'status'> {status} </div>
       <Buttons 
       back = {() => this.back()}
+      reset = {() => this.reset()}
       engine_move = {() => this.engine_move()}
       />
       <div className = 'board_container' >
@@ -234,6 +241,10 @@ function Buttons(props) {
   return (
     <div>
       <button 
+      className = "reset_button" 
+      onClick={() => props.reset()} > Reset
+      </button>
+      <button 
       className = "back_button" 
       onClick={() => props.back()} > Back 
       </button>
@@ -251,7 +262,7 @@ class Promotion extends React.Component {
     let bishop_piece = new Bishop(this.props.player);
     let rook_piece = new Rook(this.props.player);
     let queen_piece = new Queen(this.props.player);
-    /*paranoia about freakish castling circumstances with promoted rook*/
+    /*chance for crazy castling circumstance without is true*/
     rook_piece.has_moved = true;
 
     return (

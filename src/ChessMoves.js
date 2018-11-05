@@ -7,6 +7,7 @@ function legal_moves(squares, player) {
     let king_location = (player === 'white') ? white_king_location : black_king_location;
     let pinned_pieces = get_pinned_pieces(boundary_squares, king_location, player);
     let [in_check, attacking_pieces] = is_attacked(boundary_squares, king_location, player);
+    let status = null;
     /* Only King can move in double check */
     if (in_check && Object.keys(attacking_pieces).length > 1) {
         return king_moves(boundary_squares, king_location, player);
@@ -45,7 +46,16 @@ function legal_moves(squares, player) {
         legal_boards = in_check_handler(boundary_squares, legal_boards, king_location, attacking_pieces, player);
     }
 
-    return legal_boards;
+    if(legal_boards.length === 0){
+        if (in_check) {
+            status = 'Checkmate'
+        }
+        else {
+            status = 'Stalemate'
+        }
+    }
+
+    return [legal_boards, status];
 }
 
 
