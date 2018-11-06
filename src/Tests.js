@@ -40,10 +40,11 @@ function get_positions(depth, positions,player) {
 function test_game() {
     let chess_game = new Game('white', initialize_engine_board());
     chess_game.set_king_locations();
-    console.log(chess_game.king_locations);
 
+    /*
     let position_moves = legal_moves(chess_game.squares, chess_game.player, chess_game.king_locations['white'], chess_game.king_locations['black'])[0];
     console.log(position_moves)
+    */
 }
 
 export { test }
