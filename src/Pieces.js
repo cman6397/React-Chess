@@ -1,3 +1,5 @@
+import { engine_squares } from './ChessMoves';
+
 class Piece {
   constructor(player, img_url, name){
     this.player = player;
@@ -138,4 +140,10 @@ function initialize_board() {
     return board
 }
 
-export {Pawn,Rook,Knight,Bishop,King,Queen, initialize_board, make_move}
+function initialize_engine_board() {
+    let board = initialize_board();
+    let engine_board = engine_squares(board)[0];
+    return engine_board
+}
+
+export {Pawn,Rook,Knight,Bishop,King,Queen, initialize_board, initialize_engine_board, make_move}
