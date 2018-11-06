@@ -22,7 +22,7 @@ function make_move(position, move) {
 
     let start = move.start
     let end = move.end
-    let king_locations = position.king_locations;
+    let king_locations = position.king_locations.slice();
 
     let player = position.player;
     let squares = position.squares.slice();
@@ -45,7 +45,12 @@ function make_move(position, move) {
     }
 
     if (piece.name === 'King') {
-        king_locations[player] = end;
+        if (piece.player === 'white') {
+            king_locations[0] = end
+        }
+        else {
+            king_locations[1] = end
+        }
     }
 
     (player === 'white') ? player = 'black' : player = 'white';

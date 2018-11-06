@@ -5,17 +5,13 @@ import { Move } from './Engine.js';
 /* Return all legal moves given a board position and the player to move (white or black) */
 function legal_moves(position) {
     let squares = position.squares;
-    if (squares.length !== 120) {
-        console.log(position);
-        console.log(squares.length)
-    }
     let player = position.player;
-    let king_location = (player === 'white') ? position.king_locations['white'] : position.king_locations['black'];
+    let king_location = (player === 'white') ? position.king_locations[0] : position.king_locations[1];
     let pinned_pieces = get_pinned_pieces(squares, king_location, player);
-    let [in_check, attacking_pieces] = is_attacked(squares, king_location, player);
+    let [attacking_pieces, attacked_squares] = king_check_squares(squares, king_location, player);
 
     /* Only King can move in double check */
-    if (in_check && Object.keys(attacking_pieces).length > 1) {
+    if (attacking_pieces.length > 1) {
         return king_moves(squares, king_location, player);
     }
     var legal_moves = [];
@@ -48,8 +44,8 @@ function legal_moves(position) {
         }
     }
 
-    if (in_check) {
-        legal_moves = in_check_handler(squares, legal_moves, king_location, attacking_pieces, player);
+    if (attacking_pieces.length > 0) {
+        legal_moves = in_check_handler(legal_moves, king_location, attacked_squares);
     }
 
     return legal_moves;
@@ -256,27 +252,18 @@ function king_moves(squares, location, player) {
 /************************************************************* Pinned Pieces and King Checks *******************************************************************/
 
 /* Eliminate moves where king is still in check from originally checking piece.  Only for in check positions.*/
-function in_check_handler(squares, legal_boards, king_location, attacking_piece, player) {
-    let attacking_piece_location = Object.keys(attacking_piece)[0];
-    let move_direction = attacking_piece[attacking_piece_location];
-    let piece_types = [squares[attacking_piece_location].name];
-
-    for (var i = legal_boards.length - 1; i >= 0; i--) {
-        /* Knight or Pawn attacks must be dodged or taken*/
-        if (move_direction === "knight_attack" || move_direction === "pawn_attack") {
-            if (legal_boards[i][0][attacking_piece_location].player !== player && legal_boards[i][0][king_location] !== null) {
-                legal_boards.splice(i, 1);
-            }
-        }
-        else if (direction_is_attacked(legal_boards[i][0], move_direction, king_location, player, piece_types) !== null && legal_boards[i][0][king_location] !== null) {
-            legal_boards.splice(i, 1);
+function in_check_handler(legal_moves, king_location, attacked_squares) {
+    for (var i = legal_moves.length - 1; i >= 0; i--) {
+        let current_move = legal_moves[i];
+        /* If king was not moved out of check and the piece the moved piece did not block the check or eliminate the checking piece than remove the move */
+        if (!attacked_squares.includes(current_move.end) && !attacked_squares.includes(current_move.en_passant) && current_move.start !== king_location) {
+            legal_moves.splice(i, 1);
         }
     }
-
-    return legal_boards;
+    return legal_moves;
 }
 
-/* Check if King is under attack from a specified direction */
+/* Check if square is under attack from a specified direction */
 function direction_is_attacked(squares, move_direction, start_location, player, piece_types) {
     let end_location = direction(move_direction, start_location, player);
     let attacking_piece = null;
@@ -294,6 +281,82 @@ function direction_is_attacked(squares, move_direction, start_location, player, 
     }
     return attacking_piece;
 }
+/* king_check squares returns a set of squares which a player's piece must end up in to block the check or remove the checking piece */
+function king_check_squares(squares, king_location, player) {
+
+    let attacking_pieces = [];
+    let checked_squares = [];
+
+    let up_right = right(1, forward(1, king_location, player), player);
+    let up_left = left(1, forward(1, king_location, player), player);
+
+    let pawn_moves = [up_right, up_left];
+    let knight_moves = get_knight_moves(king_location, player);
+    let diag_directions = [[1, 1], [-1, 1], [1, -1], [-1, -1]];
+    let straight_directions = [[0, 1], [0, -1], [-1, 0], [1, 0]];
+
+    /* get bishop/queen attack squares */
+    for (var i = 0; i < diag_directions.length; i++) {
+        let [attack_squares, attack_piece] = attacked_squares(squares, diag_directions[i], king_location, player, ['Queen', 'Bishop']);
+        if (attack_piece !== null) {
+            checked_squares = checked_squares.concat(attack_squares);
+            attacking_pieces.push(attack_piece);
+        }
+    }
+    /* Check for rook/queen attacks */
+    for (i = 0; i < straight_directions.length; i++) {
+        let [attack_squares, attack_piece] = attacked_squares(squares, straight_directions[i], king_location, player, ['Queen', 'Rook']);
+        if (attack_piece !== null) {
+            checked_squares = checked_squares.concat(attack_squares);
+            attacking_pieces.push(attack_piece);
+        }
+    }
+
+    /* Check if square is under attack by knights*/
+    for (i = 0; i < knight_moves.length; i++) {
+        let end_piece = squares[knight_moves[i]];
+        if (end_piece !== 'boundary' && end_piece !== null) {
+            if (end_piece.player !== player && end_piece.name === 'Knight') {
+                checked_squares = checked_squares.concat([knight_moves[i]]);
+                attacking_pieces.push(end_piece);
+            }
+        }
+    }
+    /* Check if square is under attack by pawns*/
+    for (i = 0; i < pawn_moves.length; i++) {
+        let end_piece = squares[pawn_moves[i]];
+        if (end_piece !== 'boundary' && end_piece !== null) {
+            if (end_piece.player !== player && end_piece.name === 'Pawn') {
+                checked_squares = checked_squares.concat([pawn_moves[i]]);
+                attacking_pieces.push(end_piece);
+            }
+        }
+    }
+
+    return [attacking_pieces, checked_squares];
+}
+
+/* Return the squares that are under attack and the piece that is attacking*/
+function attacked_squares(squares, move_direction, start_location, player, piece_types) {
+    let end_location = direction(move_direction, start_location, player);
+    let attacked_squares = [end_location];
+
+    while (squares[end_location] === null) {
+        end_location = direction(move_direction, end_location, player);
+        attacked_squares.push(end_location);
+    }
+    let end_piece = squares[end_location];
+    if (end_piece !== 'boundary' && end_piece.player !== player) {
+        for (var i = 0; i < piece_types.length; i++) {
+            if (piece_types[i] === end_piece.name) {
+                attacked_squares.push(end_location);
+                return [attacked_squares, end_piece];
+            }
+        }
+    }
+    return [null, null];
+}
+
 /* Check if square is under attack by opposing pieces */
 function is_attacked(boundary_squares, square_location, player) {
 
@@ -360,6 +423,7 @@ function is_attacked(boundary_squares, square_location, player) {
 
     return [is_attacked, attacking_pieces];
 }
+
 /* Get pieces which are pinned to the king */
 function get_pinned_pieces(boundary_squares, king_location, player) {
     let pinned_pieces = {};
@@ -389,6 +453,7 @@ function get_pinned_piece(boundary_squares, pin_direction, king_location, player
     while (boundary_squares[pin_location] === null) {
         pin_location = direction(pin_direction, pin_location, player);
     }
+
     /* If you run into same player piece, go until you run into the next piece or boundary */
     if (boundary_squares[pin_location] !== 'boundary' && boundary_squares[pin_location].player === player) {
         pinned_piece = pin_location;
