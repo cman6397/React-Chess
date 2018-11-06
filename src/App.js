@@ -4,9 +4,8 @@ import { DragDropContext } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
 import ReactPiece from './DragPiece';
 import DropSquare from './DropSquare';
-import { initialize_board, make_move, Knight, Bishop, Rook, Queen } from './Pieces.js';
+import { initialize_board, make_move, Knight, Bishop, Rook, Queen, make_engine_move_react} from './Pieces.js';
 import { legal_moves, is_legal } from './ChessMoves';
-import { make_engine_move_react } from './Engine';
 import { test } from './Tests';
 
 class Chess extends Component {
@@ -18,7 +17,7 @@ class Chess extends Component {
       drag_end: null,
       promotion:{class:'hidden',start: null, end: null, player: null},
       status:null,
-      test:test()
+      tests: test()
     }
   }
   reset() {

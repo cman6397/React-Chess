@@ -1,61 +1,58 @@
 /********************************************** Legal Move Generation and Checking for Engine*************************************/
 import { Knight, Bishop, Rook, Queen } from './Pieces.js';
+import { Move } from './Engine.js';
 
 /* Return all legal moves given a board position and the player to move (white or black) */
-function legal_moves(squares, player, white_king_location, black_king_location) {
-    let boundary_squares = squares;
-    let king_location = (player === 'white') ? white_king_location : black_king_location;
-    let pinned_pieces = get_pinned_pieces(boundary_squares, king_location, player);
-    let [in_check, attacking_pieces] = is_attacked(boundary_squares, king_location, player);
-    let status = null;
+function legal_moves(position) {
+    let squares = position.squares;
+    if (squares.length !== 120) {
+        console.log(position);
+        console.log(squares.length)
+    }
+    let player = position.player;
+    let king_location = (player === 'white') ? position.king_locations['white'] : position.king_locations['black'];
+    let pinned_pieces = get_pinned_pieces(squares, king_location, player);
+    let [in_check, attacking_pieces] = is_attacked(squares, king_location, player);
+
     /* Only King can move in double check */
     if (in_check && Object.keys(attacking_pieces).length > 1) {
-        return king_moves(boundary_squares, king_location, player);
+        return king_moves(squares, king_location, player);
     }
-    var legal_boards = [];
+    var legal_moves = [];
 
     for (var i = 0; i < 120; i++) {
         /* Skip empty and boundary squares */
-        if (boundary_squares[i] !== null && boundary_squares[i] !== 'boundary') {
+        if (squares[i] !== null && squares[i] !== 'boundary') {
             /* Check for piece color and send move generation to subfunctions*/
-            if (boundary_squares[i].player === player) {
-                if (boundary_squares[i].name === 'Pawn') {
-                    legal_boards = legal_boards.concat(pawn_moves(boundary_squares, i, player, pinned_pieces));
+            if (squares[i].player === player) {
+                if (squares[i].name === 'Pawn') {
+                    legal_moves = legal_moves.concat(pawn_moves(squares, i, player, pinned_pieces));
                 }
-                else if (boundary_squares[i].name === 'Knight') {
-                    legal_boards = legal_boards.concat(knight_moves(boundary_squares, i, player, pinned_pieces));
+                else if (squares[i].name === 'Knight') {
+                    legal_moves = legal_moves.concat(knight_moves(squares, i, player, pinned_pieces));
                 }
-                else if (boundary_squares[i].name === 'Bishop') {
-                    legal_boards = legal_boards.concat(bishop_moves(boundary_squares, i, player, pinned_pieces));
+                else if (squares[i].name === 'Bishop') {
+                    legal_moves = legal_moves.concat(bishop_moves(squares, i, player, pinned_pieces));
                 }
-                else if (boundary_squares[i].name === 'Rook') {
-                    legal_boards = legal_boards.concat(rook_moves(boundary_squares, i, player, pinned_pieces));
+                else if (squares[i].name === 'Rook') {
+                    legal_moves = legal_moves.concat(rook_moves(squares, i, player, pinned_pieces));
                 }
-                else if (boundary_squares[i].name === 'Queen') {
-                    legal_boards = legal_boards.concat(rook_moves(boundary_squares, i, player, pinned_pieces));
-                    legal_boards = legal_boards.concat(bishop_moves(boundary_squares, i, player, pinned_pieces));
+                else if (squares[i].name === 'Queen') {
+                    legal_moves = legal_moves.concat(rook_moves(squares, i, player, pinned_pieces));
+                    legal_moves = legal_moves.concat(bishop_moves(squares, i, player, pinned_pieces));
                 }
-                else if (boundary_squares[i].name === 'King') {
-                    legal_boards = legal_boards.concat(king_moves(boundary_squares, i, player));
+                else if (squares[i].name === 'King') {
+                    legal_moves = legal_moves.concat(king_moves(squares, i, player));
                 }
             }
         }
     }
 
     if (in_check) {
-        legal_boards = in_check_handler(boundary_squares, legal_boards, king_location, attacking_pieces, player);
+        legal_moves = in_check_handler(squares, legal_moves, king_location, attacking_pieces, player);
     }
 
-    if (legal_boards.length === 0) {
-        if (in_check) {
-            status = 'Checkmate'
-        }
-        else {
-            status = 'Stalemate'
-        }
-    }
-
-    return [legal_boards, status];
+    return legal_moves;
 }
 
 
@@ -508,7 +505,9 @@ function make_move(piece, start, end, squares) {
     squares = squares.slice();
     squares[start] = null;
     squares[end] = piece;
-    return [squares, [start, end, piece, { 'standard': true }]];
+
+    let move = new Move(start, end, null, null, null)
+    return move;
 }
 /* Castling Requires special move making */
 function castle(king, king_start, king_end, rook, rook_start, rook_end, squares) {
@@ -518,7 +517,8 @@ function castle(king, king_start, king_end, rook, rook_start, rook_end, squares)
     squares[king_end] = king;
     squares[rook_end] = rook;
 
-    return [squares, [king_start, king_end, king, { 'castle': [rook_start, rook_end, rook] }]];
+    let move = new Move(king_start, king_end, null, rook_start, rook_end);
+    return move;
 }
 /* En Passant requires special move making */
 function en_passant(piece, start, end, captured_location, squares) {
@@ -527,7 +527,8 @@ function en_passant(piece, start, end, captured_location, squares) {
     squares[end] = piece;
     squares[captured_location] = null;
 
-    return [squares, [start, end, piece, { 'en_passant': captured_location }]];
+    let move = new Move(start, end, captured_location, null, null);
+    return move;
 }
 
 /* Abstact away difference between black and white moves. All from perspective of player. */
