@@ -1,4 +1,4 @@
-import { engine_squares, normal_squares } from './ChessMoves';
+import { engine_squares, normal_squares } from './EngineMoves';
 
 class Piece {
   constructor(player, img_url, name){
@@ -142,7 +142,7 @@ function initialize_board() {
 
 function initialize_engine_board() {
     let board = initialize_board();
-    let engine_board = engine_squares(board)[0];
+    let engine_board = engine_squares(board);
     return engine_board
 }
 

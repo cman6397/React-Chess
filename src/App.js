@@ -4,16 +4,16 @@ import { DragDropContext } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
 import ReactPiece from './DragPiece';
 import DropSquare from './DropSquare';
-import { initialize_board, make_move, Knight, Bishop, Rook, Queen, make_engine_move_react} from './Pieces.js';
-import { legal_moves, is_legal } from './ChessMoves';
+import { Knight, Bishop, Rook, Queen, initialize_engine_board} from './Pieces.js';
+import { legal_moves, is_legal, normal_squares } from './EngineMoves';
 import { test } from './Tests';
+import { make_move, Position} from './Engine';
 
 class Chess extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      history: [{squares: initialize_board()}],
-      player: 'white',
+      history: [{ position: new Position('white', initialize_engine_board(), [95, 25], [1, 1, 1, 1])}],
       drag_end: null,
       promotion:{class:'hidden',start: null, end: null, player: null},
       status:null,
@@ -22,8 +22,7 @@ class Chess extends Component {
   }
   reset() {
     this.setState({
-      history: [{squares: initialize_board()}],
-      player: 'white',
+      history: [{ position: new Position('white', initialize_engine_board(), [95, 25], [1, 1, 1, 1])}],
       drag_end: null,
       promotion:{class:'hidden',start: null, end: null, player: null},
       status:null
@@ -31,44 +30,29 @@ class Chess extends Component {
   }
   back() {
     const history = this.state.history.slice();
-    let player = this.state.player;
 
     if (history.length === 1) {
       return;
     }
     history.pop();
-    (player === 'white') ? player = 'black' : player = 'white';
 
     this.setState({
       history: history,
-      player:player,
       status:null
     });
   }
 
   engine_move() {
     const history = this.state.history.slice();
-    const squares = history[history.length - 1].squares.slice();
-    let player = this.state.player;
+    const position = history[history.length - 1].position;
 
-    let engine_moves = legal_moves(squares, player)
-    let possible_moves = engine_moves[0];
+    let engine_moves = legal_moves(position)
 
-    if (engine_moves[1] !== null){
-      this.setState({
-        status: engine_moves[1]
-      });
-      return;
-    }
-
-    let move = possible_moves[Math.floor(Math.random() * possible_moves.length)][1];
-    let new_squares = make_engine_move_react(squares, move);
-
-    (player === 'white') ? player = 'black' : player = 'white';
+    let move = engine_moves[Math.floor(Math.random() * engine_moves.length)];
+    let new_position = make_move(position, move);
 
     this.setState({
-      history: history.concat([{squares: new_squares}]),
-      player:player
+      history: history.concat([{position: new_position}]),
     });
   }
 
@@ -78,7 +62,7 @@ class Chess extends Component {
 
   handle_drag_end(id) {
     const history = this.state.history.slice();
-    const squares = history[history.length - 1].squares.slice();
+    const squares = history[history.length - 1];
     let drag_start = id;
     let drag_end = this.state.drag_end;
     let player = this.state.player;
@@ -127,9 +111,10 @@ class Chess extends Component {
   }
 
   render() {
-    let boards = this.state.history;
-    let current_squares = boards[boards.length-1].squares;
-    let player = this.state.player;
+    let history= this.state.history;
+    let current_position = history[history.length - 1].position
+    let current_squares = normal_squares(current_position.squares);
+    let player = current_position.player;
     let promotion_class = this.state.promotion['class'];
     let status = this.state.status;
 
@@ -147,7 +132,7 @@ class Chess extends Component {
           onDragStart = {(id) => this.drag_start(id)}
           onDragEnd = {(id) => this.drag_end(id)}
           onDrop = {(id) => this.drop(id)}
-          player = {this.state.player}
+          player = {player}
           handle_drop={(id) => this.handle_drop(id)}
           handle_drag_end = {(id) => this.handle_drag_end(id)}
         />

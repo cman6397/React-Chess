@@ -215,7 +215,10 @@ function test_queen() {
 /*See how move generation functions and move making functions are doing speed wise*/
 function test_position_class() {
     let chess_position = new Position('white', initialize_engine_board(), [95, 25], [1, 1, 1, 1]);
+    console.log(chess_position)
+
     let moves = legal_moves(chess_position);
+
     let positions = [];
     let total_moves = 10000;
     let total_positions = 20000; 
