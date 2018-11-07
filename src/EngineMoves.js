@@ -224,25 +224,25 @@ function king_moves(squares, location, player, castle_state) {
 
 
     /* White Kingside */
-    if (castle_state[0] === 0 && squares[white_king_start + 1] === null && squares[white_king_start + 2] === null) {
+    if (castle_state[0] === 1 && squares[white_king_start + 1] === null && squares[white_king_start + 2] === null) {
         if (!is_attacked(squares, white_king_start + 1, player)[0] && !is_attacked(squares, white_king_start + 2, player)[0]) {
             legal_boards.push(castle(king, white_king_start, white_king_start + 2, squares[white_kingside_rook], white_kingside_rook, white_kingside_rook - 2, squares));
         }
     }
     /* White Queenside */
-    if (castle_state[1] === 0 && squares[white_king_start - 1] === null && squares[white_king_start - 2] === null && squares[white_king_start - 3] === null) {
+    if (castle_state[1] === 1 && squares[white_king_start - 1] === null && squares[white_king_start - 2] === null && squares[white_king_start - 3] === null) {
         if (!is_attacked(squares, white_king_start - 1, player)[0] && !is_attacked(squares, white_king_start - 2, player)[0]) {
             legal_boards.push(castle(king, white_king_start, white_king_start - 2, squares[white_queenside_rook], white_queenside_rook, white_queenside_rook + 3, squares));
         }
     }
     /* Black Kingside */
-    if (castle_state[3] === 0 && squares[black_king_start + 1] === null && squares[black_king_start + 2] === null) {
+    if (castle_state[2] === 1 && squares[black_king_start + 1] === null && squares[black_king_start + 2] === null) {
         if (!is_attacked(squares, black_king_start + 1, player)[0] && !is_attacked(squares, black_king_start + 2, player)[0]) {
             legal_boards.push(castle(king, black_king_start, black_king_start + 2, squares[black_kingside_rook], black_kingside_rook, black_kingside_rook - 2, squares));
         }
     }
     /* Black Queenside */
-    if (castle_state[4] === 0 && squares[black_king_start - 1] === null && squares[black_king_start - 2] === null && squares[black_king_start - 3] === null) {
+    if (castle_state[3] === 1 && squares[black_king_start - 1] === null && squares[black_king_start - 2] === null && squares[black_king_start - 3] === null) {
         if (!is_attacked(squares, black_king_start - 1, player)[0] && !is_attacked(squares, black_king_start - 2, player)[0]) {
             legal_boards.push(castle(king, black_king_start, black_king_start - 2, squares[black_queenside_rook], black_queenside_rook, black_queenside_rook + 3, squares));
         }
@@ -678,8 +678,6 @@ function engine_squares(squares) {
     let engine_squares = Array(120).fill(null);
     let count = 0;
     let index = 0;
-    let white_king_location = null;
-    let black_king_location = null;
 
     for (var i = 0; i < 12; i++) {
         for (var y = 0; y < 10; y++) {
@@ -690,19 +688,11 @@ function engine_squares(squares) {
             }
             else {
                 engine_squares[index] = squares[count];
-                if (squares[count] !== null && squares[count].name === "King") {
-                    if (squares[count].player === "white") {
-                        white_king_location = index;
-                    }
-                    else {
-                        black_king_location = index;
-                    }
-                }
                 count = count + 1;
             }
         }
     }
-    return [engine_squares, white_king_location, black_king_location];
+    return engine_squares
 }
 /* Turn padded board back into 64 Square board */
 function normal_squares(engine_squares) {
@@ -737,4 +727,26 @@ function squares_repr(squares) {
     return squares_rep.toString();
 }
 
-export { legal_moves, is_legal, engine_squares, normal_squares }
+function get_king_locations(squares) {
+    /*White King Location & Black King location*/
+    let wk_location = null;
+    let bk_location = null;
+
+    for (var k = 0; k < squares.length; k++) {
+        let current_square = squares[k];
+        if (current_square !== null && current_square !== 'boundary') {
+            if (current_square.name === 'King') {
+                if (current_square.player === 'white') {
+                    wk_location = k;
+                }
+                else {
+                    bk_location = k;
+                }
+            }
+        }
+    }
+    let king_locations = [wk_location, bk_location]
+    return king_locations;
+}
+
+export { legal_moves, is_legal, engine_squares, normal_squares , get_king_locations}
