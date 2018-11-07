@@ -1,5 +1,6 @@
 
-        
+import { legal_moves} from './EngineMoves';
+
 /* king locations = [white king, black king]
  * castle_state = [white kingside, white queenside, black kingside, black queenside] 1 for can castle 0 for cannot castle */
 class Position {
@@ -112,4 +113,25 @@ function get_king_locations(position) {
     return king_locations;
 }
 
-export {Move, Position, make_move, get_king_locations}
+/* Breadth First Search.*/
+function breadth_search(depth, positions) {
+    if (depth === 0) {
+        return positions;
+    }
+    else {
+        let new_positions = [];
+        for (var j = 0; j < positions.length; j++) {
+            let current_position = positions[j];
+            let moves = legal_moves(current_position);
+
+            for (var i = 0; i < moves.length; i++) {
+                let current_move = moves[i];
+                let next_move = make_move(current_position, current_move)
+                new_positions.push(next_move);
+            }
+        }
+        return breadth_search(depth - 1, new_positions);
+    }
+}
+
+export {Move, Position, make_move, get_king_locations, breadth_search}
