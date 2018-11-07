@@ -267,8 +267,6 @@ class Promotion extends React.Component {
     let bishop_piece = new Bishop(this.props.player);
     let rook_piece = new Rook(this.props.player);
     let queen_piece = new Queen(this.props.player);
-    /*chance for crazy castling circumstance without is true*/
-    rook_piece.has_moved = true;
 
     return (
       <div className = {this.props.className}>

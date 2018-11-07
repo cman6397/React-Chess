@@ -1,10 +1,13 @@
 
-
+        
+/* king locations = [white king, black king]
+ * castle_state = [white kingside, white queenside, black kingside, black queenside] 1 for can castle 0 for cannot castle */
 class Position {
-    constructor(player, squares, king_locations) {
+    constructor(player, squares, king_locations, castle_state) {
         this.player = player;
         this.squares = squares;
         this.king_locations = king_locations;
+        this.castle_state = castle_state;
     }
 }
 
@@ -22,40 +25,68 @@ function make_move(position, move) {
 
     let start = move.start
     let end = move.end
-    let king_locations = position.king_locations.slice();
+
+    /*Starting Rook Locations */
+    let wk_rook = 96;
+    let wq_rook = 91;
+    let bk_rook = 28;
+    let bq_rook = 21;
 
     let player = position.player;
+
     let squares = position.squares.slice();
     let piece = JSON.parse(JSON.stringify(squares[start]));
+    let king_locations = position.king_locations.slice();
+    let castle_state = position.castle_state.slice();
+
+    if (move.en_passant_capture !== null) {
+        squares[move.en_passant_capture] = null;
+    }
+    /*Castling move*/
+    if (move.rook_start !== null) {
+        let rook = JSON.parse(JSON.stringify(squares[move.rook_start]));
+        castle_state = [0, 0, 0, 0];
+        squares[move.rook_start] = null;
+        squares[move.rook_end] = rook;
+        rook.has_moved = true;
+    }
+    /*Change King Location and Castling states*/
+    if (piece.name === 'King') {
+        if (piece.player === 'white') {
+            king_locations[0] = end
+            castle_state[0] = 0;
+            castle_state[1] = 0;
+        }
+        else {
+            king_locations[1] = end
+            castle_state[2] = 0;
+            castle_state[3] = 0;
+        }
+    }
+    /* Change castling states for first rook moves */
+    if (piece.name === 'Rook' && !piece.has_moved) {
+        if (start === wk_rook) {
+            castle_state[0] = 0;
+        }
+        else if (start === wq_rook) {
+            castle_state[1] = 0;
+        }
+        else if (start === bk_rook) {
+            castle_state[2] = 0;
+        }
+        else if (start === bq_rook) {
+            castle_state[3] = 0;
+        }
+    }
 
     squares[start] = null;
     squares[end] = piece;
 
     piece.has_moved = true;
 
-    if (move.en_passant_capture !== null) {
-        squares[move.en_passant_capture] = null;
-    }
-    if (move.rook_start !== null) {
-        let rook = JSON.parse(JSON.stringify(squares[move.rook_start]));
-
-        squares[move.rook_start] = null;
-        squares[move.rook_end] = rook;
-        rook.has_moved = true;
-    }
-
-    if (piece.name === 'King') {
-        if (piece.player === 'white') {
-            king_locations[0] = end
-        }
-        else {
-            king_locations[1] = end
-        }
-    }
-
     (player === 'white') ? player = 'black' : player = 'white';
 
-    return new Position(player, squares, king_locations);
+    return new Position(player, squares, king_locations, castle_state);
 }
 
 function get_king_locations(position) {

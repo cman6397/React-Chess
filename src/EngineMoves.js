@@ -8,11 +8,13 @@ function legal_moves(position) {
     let player = position.player;
     let king_location = (player === 'white') ? position.king_locations[0] : position.king_locations[1];
     let pinned_pieces = get_pinned_pieces(squares, king_location, player);
+    let castle_state = position.castle_state;
+
     let [attacking_pieces, attacked_squares] = king_check_squares(squares, king_location, player);
 
     /* Only King can move in double check */
     if (attacking_pieces.length > 1) {
-        return king_moves(squares, king_location, player);
+        return king_moves(squares, king_location, player, castle_state);
     }
     var legal_moves = [];
 
@@ -38,7 +40,7 @@ function legal_moves(position) {
                     legal_moves = legal_moves.concat(bishop_moves(squares, i, player, pinned_pieces));
                 }
                 else if (squares[i].name === 'King') {
-                    legal_moves = legal_moves.concat(king_moves(squares, i, player));
+                    legal_moves = legal_moves.concat(king_moves(squares, i, player, castle_state));
                 }
             }
         }
@@ -187,7 +189,7 @@ function rook_moves(squares, location, player, pinned_pieces) {
     return legal_boards;
 }
 /* Get legal moves for a king given a board position */
-function king_moves(squares, location, player) {
+function king_moves(squares, location, player, castle_state) {
     let legal_boards = [];
 
     let king = squares[location];
@@ -220,32 +222,32 @@ function king_moves(squares, location, player) {
     let white_king_start = 95;
     let black_king_start = 25;
 
-    if (!king.has_moved && !is_attacked(squares, location, player)[0]) {
-        /* White Kingside */
-        if (location === white_king_start && squares[white_kingside_rook] !== null && !squares[white_kingside_rook].has_moved && squares[white_king_start + 1] === null && squares[white_king_start + 2] === null) {
-            if (!is_attacked(squares, white_king_start + 1, player)[0] && !is_attacked(squares, white_king_start + 2, player)[0]) {
-                legal_boards.push(castle(king, white_king_start, white_king_start + 2, squares[white_kingside_rook], white_kingside_rook, white_kingside_rook - 2, squares));
-            }
-        }
-        /* Black Kingside */
-        if (location === black_king_start && squares[black_kingside_rook] !== null && !squares[black_kingside_rook].has_moved && squares[black_king_start + 1] === null && squares[black_king_start + 2] === null) {
-            if (!is_attacked(squares, black_king_start + 1, player)[0] && !is_attacked(squares, black_king_start + 2, player)[0]) {
-                legal_boards.push(castle(king, black_king_start, black_king_start + 2, squares[black_kingside_rook], black_kingside_rook, black_kingside_rook - 2, squares));
-            }
-        }
-        /* White Queenside */
-        if (location === white_king_start && squares[white_queenside_rook] !== null && !squares[white_queenside_rook].has_moved && squares[white_king_start - 1] === null && squares[white_king_start - 2] === null && squares[white_king_start - 3] === null) {
-            if (!is_attacked(squares, white_king_start - 1, player)[0] && !is_attacked(squares, white_king_start - 2, player)[0]) {
-                legal_boards.push(castle(king, white_king_start, white_king_start - 2, squares[white_queenside_rook], white_queenside_rook, white_queenside_rook + 3, squares));
-            }
-        }
-        /* Black Queenside */
-        if (location === black_king_start && squares[black_queenside_rook] !== null && !squares[black_queenside_rook].has_moved && squares[black_king_start - 1] === null && squares[black_king_start - 2] === null && squares[black_king_start - 3] === null) {
-            if (!is_attacked(squares, black_king_start - 1, player)[0] && !is_attacked(squares, black_king_start - 2, player)[0]) {
-                legal_boards.push(castle(king, black_king_start, black_king_start - 2, squares[black_queenside_rook], black_queenside_rook, black_queenside_rook + 3, squares));
-            }
+
+    /* White Kingside */
+    if (castle_state[0] === 0 && squares[white_king_start + 1] === null && squares[white_king_start + 2] === null) {
+        if (!is_attacked(squares, white_king_start + 1, player)[0] && !is_attacked(squares, white_king_start + 2, player)[0]) {
+            legal_boards.push(castle(king, white_king_start, white_king_start + 2, squares[white_kingside_rook], white_kingside_rook, white_kingside_rook - 2, squares));
         }
     }
+    /* White Queenside */
+    if (castle_state[1] === 0 && squares[white_king_start - 1] === null && squares[white_king_start - 2] === null && squares[white_king_start - 3] === null) {
+        if (!is_attacked(squares, white_king_start - 1, player)[0] && !is_attacked(squares, white_king_start - 2, player)[0]) {
+            legal_boards.push(castle(king, white_king_start, white_king_start - 2, squares[white_queenside_rook], white_queenside_rook, white_queenside_rook + 3, squares));
+        }
+    }
+    /* Black Kingside */
+    if (castle_state[3] === 0 && squares[black_king_start + 1] === null && squares[black_king_start + 2] === null) {
+        if (!is_attacked(squares, black_king_start + 1, player)[0] && !is_attacked(squares, black_king_start + 2, player)[0]) {
+            legal_boards.push(castle(king, black_king_start, black_king_start + 2, squares[black_kingside_rook], black_kingside_rook, black_kingside_rook - 2, squares));
+        }
+    }
+    /* Black Queenside */
+    if (castle_state[4] === 0 && squares[black_king_start - 1] === null && squares[black_king_start - 2] === null && squares[black_king_start - 3] === null) {
+        if (!is_attacked(squares, black_king_start - 1, player)[0] && !is_attacked(squares, black_king_start - 2, player)[0]) {
+            legal_boards.push(castle(king, black_king_start, black_king_start - 2, squares[black_queenside_rook], black_queenside_rook, black_queenside_rook + 3, squares));
+        }
+    }
+
     return legal_boards;
 }
 

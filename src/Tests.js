@@ -6,13 +6,14 @@ import { legal_moves} from './EngineMoves';
 function test() {
     test_position_class();
     test_positions();
+    fen_to_position('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
 }
-/*Check number of positions found.  1) 20, 2) 400, 3) 8902, 4) 197281 */
+/*Check number of positions found.  1) 20, 2) 400, 3) 8902, 4) 197281 for starting position */
 function test_positions() {
     var t0 = performance.now();
     let depth = 4; 
 
-    let chess_position = new Position('white', initialize_engine_board(), [95, 25]);
+    let chess_position = new Position('white', initialize_engine_board(), [95, 25], [1,1,1,1]);
 
     let moves = get_positions(depth, [chess_position]);
     let total_positions = moves.length
@@ -43,7 +44,7 @@ function get_positions(depth, positions) {
 
 /*See how move generation functions and move making functions are doing speed wise*/
 function test_position_class() {
-    let chess_position = new Position('white', initialize_engine_board(), [95, 25]);
+    let chess_position = new Position('white', initialize_engine_board(), [95, 25], [1, 1, 1, 1]);
     let moves = legal_moves(chess_position);
     let positions = [];
     let total_moves = 10000;
@@ -64,6 +65,10 @@ function test_position_class() {
 
     console.log('made moves per second', total_moves / ((m1 - m0) / 1000), 'total_moves:', total_moves);
     console.log('moves_generated_per_second', (total_positions * legal_moves(chess_position).length) / ((p1 - p0) / 1000), 'total_moves_generated:', (total_positions * legal_moves(chess_position).length));
+}
+/* Turn FEN position representation into position object */
+function fen_to_position(fen_string) {
+    console.log(fen_string)
 }
 
 export { test }
