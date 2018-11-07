@@ -1,4 +1,4 @@
-import { engine_squares, normal_squares } from './EngineMoves';
+import { engine_squares} from './EngineMoves';
 
 class Piece {
   constructor(player, img_url, name){
@@ -70,51 +70,7 @@ class King extends Piece {
         super(player, url, 'King')
     }
 }
-/*This move generation function is for the UI and it interprets the mouse moves not egine moves */
-function make_move(start, end, squares, piece) {
 
-    /*For En passant*/
-    if (piece.name === 'Pawn') {
-        if (Math.abs(start - end) === 16) {
-            piece.just_moved_two = true;
-				}
-        else {
-            piece.just_moved_two = false;
-            /* En Passant.  Remove pawn to the direct left or right when en passant criteria is satisfied.*/
-            if (Math.abs(start - end) === 7 && squares[end] === null) {
-                if (piece.player === 'white') {
-                    squares[start + 1] = null;
-                }
-                else {
-                    squares[start - 1] = null;
-                }
-            }
-            else if (Math.abs(start - end) === 9 && squares[end] === null) {
-                if (piece.player === 'white') {
-                    squares[start - 1] = null;
-                }
-                else {
-                    squares[start + 1] = null;
-                }
-            }
-        }
-    }
-    /* For Castling */
-    if (piece.name === 'King') {
-        /* kingside */
-        if ((end - start) === 2) {
-            squares[start + 1] = squares[end + 1];
-            squares[end + 1] = null
-        }
-        else if ((start - end) === 2) {
-            squares[start - 1] = squares[end - 2];
-            squares[end - 2] = null
-        }
-    }
-    squares[start] = null;
-    squares[end] = piece;
-    piece.has_moved = true;
-}
 
 function initialize_board() {
     var board = Array(64).fill(null)
@@ -146,32 +102,6 @@ function initialize_engine_board() {
     return engine_board
 }
 
-/* Engine Make move function for React board */
-function make_engine_move_react(squares64, move) {
-	let start = move[0];
-	let end = move[1];
-	let piece = JSON.parse(JSON.stringify(move[2]));
-	let squares = engine_squares(squares64)[0];
 
-	squares[start] = null;
-	squares[end] = piece;
 
-	piece.has_moved = true;
-
-	if ('en_passant' in move[3]){
-			let taken_location = move[3]['en_passant'];
-			squares[taken_location] = null;
-	}
-	else if ('castle' in move[3]){
-			let rook_moves = move[3]['castle'];
-			let rook = JSON.parse(JSON.stringify(rook_moves[2]));
-			
-			squares[rook_moves[0]] = null;
-			squares[rook_moves[1]] = rook;
-			rook.has_moved = true;
-	}
-	squares = normal_squares(squares);
-	return squares;
-}
-
-export {Pawn,Rook,Knight,Bishop,King,Queen, initialize_board, initialize_engine_board, make_move, make_engine_move_react}
+export {Pawn,Rook,Knight,Bishop,King,Queen, initialize_board, initialize_engine_board}

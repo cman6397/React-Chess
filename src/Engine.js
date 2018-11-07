@@ -13,12 +13,13 @@ class Position {
 }
 
 class Move {
-    constructor(start,end, en_passant, rook_start, rook_end) {
+    constructor(start,end, en_passant, rook_start, rook_end, promotion_piece) {
         this.start = start;
         this.end = end;
         this.en_passant_capture = en_passant;
         this.rook_start = rook_start;
         this.rook_end = rook_end;
+        this.promotion_piece = promotion_piece;
     }
 }
 
@@ -80,6 +81,11 @@ function make_move(position, move) {
         }
     }
 
+    /*Promotion */
+    if (move.promotion_piece !== null) {
+        piece = move.promotion_piece;
+    }
+
     squares[start] = null;
     squares[end] = piece;
 
@@ -89,6 +95,7 @@ function make_move(position, move) {
 
     return new Position(player, squares, king_locations, castle_state);
 }
+
 
 function get_king_locations(position) {
     /*White King Location & Black King location*/

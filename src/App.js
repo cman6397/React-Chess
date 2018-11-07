@@ -5,7 +5,7 @@ import HTML5Backend from 'react-dnd-html5-backend';
 import ReactPiece from './DragPiece';
 import DropSquare from './DropSquare';
 import { Knight, Bishop, Rook, Queen, initialize_engine_board} from './Pieces.js';
-import { legal_moves, is_legal, normal_squares } from './EngineMoves';
+import { legal_moves, is_legal, normal_squares, create_move, coordinate_change } from './EngineMoves';
 import { test } from './Tests';
 import { make_move, Position} from './Engine';
 
@@ -62,50 +62,44 @@ class Chess extends Component {
 
   handle_drag_end(id) {
     const history = this.state.history.slice();
-    const squares = history[history.length - 1];
-    let drag_start = id;
-    let drag_end = this.state.drag_end;
-    let player = this.state.player;
-    let piece_copy = JSON.parse(JSON.stringify(squares[drag_start]));
+    const position = history[history.length - 1].position;
+
+    let drag_start = coordinate_change(id);
+    let drag_end = coordinate_change(this.state.drag_end);
+    let piece= position.squares[drag_start];
     /* promotions */
-    if ((drag_end < 8 || drag_end > 55) && piece_copy.name === 'Pawn'){
-      let promotion = {class:'promotion_container',start: drag_start, end: drag_end, player: player}
+    if ((drag_end <= 28 || drag_end >= 91) && piece.name === 'Pawn'){
+      let promotion = {class:'promotion_container',start: drag_start, end: drag_end, player: position.player}
       this.setState({promotion:promotion})
       return;
     }
-    this.change_states(history,squares,player,drag_start,drag_end,piece_copy)
+    this.change_states(history, position, drag_start, drag_end, null)
   };
 
   handle_promotion(piece) {
     const history = this.state.history.slice();
-    const squares = history[history.length - 1].squares.slice();
+    const position = history[history.length - 1].position;
     const promotion = this.state.promotion;
 
     let start = promotion['start'];
     let end = promotion['end'];
-    let player = promotion['player'];
 
-    this.change_states(history,squares,player,start,end,piece)
+    this.change_states(history, position, start, end, piece)
 
     this.setState({
       promotion:{class:'hidden',start: null, end: null, player: null}
     });
   }
 
-  change_states(history, squares, player, start, end, piece) {
-    let possible_moves = legal_moves(squares, player)[0];
-    make_move(start, end, squares, piece);
+  change_states(history, position, start, end, promotion_piece) {
+    let possible_moves = legal_moves(position);
+    let move = create_move(start, end, position, promotion_piece);
 
-    if (is_legal(squares, possible_moves)){
-      (player === 'white') ? player = 'black' : player = 'white';
-
-      let status = legal_moves(squares, player)[1];
-
+    if (is_legal(move, possible_moves)) {
+      let new_position = make_move(position, move);
       this.setState({
-        history: history.concat([{squares: squares}]),
+        history: history.concat([{position: new_position}]),
         drag_end: null,
-        player: player,
-        status: status
       });
     }
   }
