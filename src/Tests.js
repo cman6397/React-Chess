@@ -1,5 +1,5 @@
 import { initialize_engine_board, King, Rook, Pawn, Knight, Bishop, Queen } from './Pieces.js';
-import { make_move, Position,breadth_search, evaluate_position } from './Engine.js';
+import { make_move, Position,breadth_search, evaluate_position, alpha_beta } from './Engine.js';
 import { legal_moves, engine_squares} from './EngineMoves';
 
 /* Compare possible move generation to known possible move generation.  */
@@ -21,7 +21,15 @@ function test_positions() {
     let total_positions = positions.length
 
     var t1 = performance.now();
-    console.log('nodes per second', total_positions / ((t1 - t0) / 1000), 'total_positions:', total_positions, 'depth:', depth)
+    console.log('nodes per second', total_positions / ((t1 - t0) / 1000), 'total_positions:', total_positions, 'depth:', depth);
+
+    t0 = performance.now();
+
+    let evaluation = alpha_beta(chess_position, 4,-10000, 10000, 0);
+
+    t1 = performance.now();
+
+    console.log((t1-t0) / 1000, evaluation)
 }
 
 /*Test Piece Moves */
@@ -240,11 +248,20 @@ function test_position_class() {
 }
 
 function test_evaluation(){
+    let num_positions = 1000000
     let chess_position = new Position('white', initialize_engine_board(), [95, 25], [1, 1, 1, 1]);
 
     if (evaluate_position(chess_position) !== 0){
         console.log('EVALUATION FAILED')
     }
+
+    var t1 = performance.now();
+    for (var k = 0; k < num_positions; k++) {
+        evaluate_position(chess_position)
+    }
+    var t2 = performance.now();
+
+    console.log("Evaluations Per Second:", num_positions*1000/(t2-t1))
 }
 
 function test_num_moves(pieces, locations, player, castle_state, num_moves){

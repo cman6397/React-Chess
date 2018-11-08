@@ -117,6 +117,50 @@ function breadth_search(depth, positions) {
     }
 }
 
+function alpha_beta(position, depth, alpha, beta, positions_searched) {
+    if (depth === 0) {
+        return {value: evaluate_position(position)};
+    }
+    let moves = legal_moves(position);
+    positions_searched = positions_searched + moves.length;
+    //Checkmate
+    if (moves.length === 0) {
+        if (position.player === 'white') {
+            return {value: 1000};
+        }
+        else {
+            return {value: -1000};
+        }
+    }
+    if (position.player === 'white') {
+        let value = -10000;
+        for (var x = 0; x < moves.length; x ++) {
+            let current_move = moves[x];
+            let current_position = make_move(position, current_move);
+            value = Math.max(value, alpha_beta(current_position, depth-1, alpha, beta, positions_searched).value);
+            alpha = Math.max(alpha, value);
+            if (alpha >= beta) {
+                break;
+            }
+        }
+        return {value: value};
+    }
+    else {
+        let value = 10000;
+        for (var k = 0; k < moves.length; k ++) {
+            let current_move = moves[k];
+            let current_position = make_move(position, current_move);
+            value = Math.min(value, alpha_beta(current_position, depth-1, alpha, beta, positions_searched).value);
+            beta = Math.min(beta, value);
+            if (alpha >= beta) {
+                break;
+            }
+        }
+        return {value: value};
+    }
+}
+
+
 /*All evaluations with respect to white */
 function evaluate_position(position) {
     let scoring = {Pawn: 1, Knight:3, Bishop: 3.3, Rook: 5, Queen:9.5, King:0}
@@ -137,4 +181,4 @@ function evaluate_position(position) {
 }
 
 
-export {Move, Position, make_move, evaluate_position, breadth_search}
+export {Move, Position, make_move, evaluate_position, breadth_search, alpha_beta}
