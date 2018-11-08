@@ -191,8 +191,6 @@ function rook_moves(squares, location, player, pinned_pieces) {
 function king_moves(squares, location, player, castle_state) {
     let legal_moves = [];
 
-    let king = squares[location];
-
     /* Take King off the board for calculating normal move attacking squares */
     let king_squares = squares.slice();
     king_squares[location] = null;

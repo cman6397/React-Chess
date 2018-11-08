@@ -1,12 +1,13 @@
 import { initialize_engine_board, King, Rook, Pawn, Knight, Bishop, Queen } from './Pieces.js';
-import { make_move, Position,breadth_search } from './Engine.js';
-import { legal_moves, engine_squares, get_king_locations} from './EngineMoves';
+import { make_move, Position,breadth_search, evaluate_position } from './Engine.js';
+import { legal_moves, engine_squares} from './EngineMoves';
 
 /* Compare possible move generation to known possible move generation.  */
 function test() {
     test_position_class();
     test_positions();
-    test_pieces()
+    test_pieces();
+    test_evaluation();
    
 }
 /*Check number of positions found.  1) 20, 2) 400, 3) 8902, 4) 197281 for starting position */
@@ -16,8 +17,8 @@ function test_positions() {
 
     let chess_position = new Position('white', initialize_engine_board(), [95, 25], [1,1,1,1]);
 
-    let moves = breadth_search(depth, [chess_position]);
-    let total_positions = moves.length
+    let positions = breadth_search(depth, [chess_position]);
+    let total_positions = positions.length
 
     var t1 = performance.now();
     console.log('nodes per second', total_positions / ((t1 - t0) / 1000), 'total_positions:', total_positions, 'depth:', depth)
@@ -215,8 +216,6 @@ function test_queen() {
 /*See how move generation functions and move making functions are doing speed wise*/
 function test_position_class() {
     let chess_position = new Position('white', initialize_engine_board(), [95, 25], [1, 1, 1, 1]);
-    console.log(chess_position)
-
     let moves = legal_moves(chess_position);
 
     let positions = [];
@@ -240,6 +239,14 @@ function test_position_class() {
     console.log('moves_generated_per_second', (total_positions * legal_moves(chess_position).length) / ((p1 - p0) / 1000), 'total_moves_generated:', (total_positions * legal_moves(chess_position).length));
 }
 
+function test_evaluation(){
+    let chess_position = new Position('white', initialize_engine_board(), [95, 25], [1, 1, 1, 1]);
+
+    if (evaluate_position(chess_position) !== 0){
+        console.log('EVALUATION FAILED')
+    }
+}
+
 function test_num_moves(pieces, locations, player, castle_state, num_moves){
     let passed = true;
     let squares = Array(64).fill(null);
@@ -258,6 +265,28 @@ function test_num_moves(pieces, locations, player, castle_state, num_moves){
         passed = false;
     }
     return passed;
+}
+
+function get_king_locations(squares) {
+    /*White King Location & Black King location*/
+    let wk_location = null;
+    let bk_location = null;
+
+    for (var k = 0; k < squares.length; k++) {
+        let current_square = squares[k];
+        if (current_square !== null && current_square !== 'boundary') {
+            if (current_square.name === 'King') {
+                if (current_square.player === 'white') {
+                    wk_location = k;
+                }
+                else {
+                    bk_location = k;
+                }
+            }
+        }
+    }
+    let king_locations = [wk_location, bk_location]
+    return king_locations;
 }
 
 export { test }

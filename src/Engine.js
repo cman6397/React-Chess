@@ -96,30 +96,6 @@ function make_move(position, move) {
     return new Position(player, squares, king_locations, castle_state);
 }
 
-
-function get_king_locations(position) {
-    /*White King Location & Black King location*/
-    let wk_location = null;
-    let bk_location = null;
-    let squares = position.squares;
-
-    for (var k = 0; k < squares.length; k++) {
-        let current_square = squares[k];
-        if (current_square !== null && current_square !== 'boundary') {
-            if (current_square.name === 'King') {
-                if (current_square.player === 'white') {
-                    wk_location = k;
-                }
-                else {
-                    bk_location = k;
-                }
-            }
-        }
-    }
-    let king_locations = {'white': wk_location, 'black': bk_location}
-    return king_locations;
-}
-
 /* Breadth First Search.*/
 function breadth_search(depth, positions) {
     if (depth === 0) {
@@ -133,12 +109,32 @@ function breadth_search(depth, positions) {
 
             for (var i = 0; i < moves.length; i++) {
                 let current_move = moves[i];
-                let next_move = make_move(current_position, current_move)
-                new_positions.push(next_move);
+                let next_position = make_move(current_position, current_move)
+                new_positions.push(next_position);
             }
         }
         return breadth_search(depth - 1, new_positions);
     }
 }
 
-export {Move, Position, make_move, get_king_locations, breadth_search}
+/*All evaluations with respect to white */
+function evaluate_position(position) {
+    let scoring = {Pawn: 1, Knight:3, Bishop: 3.3, Rook: 5, Queen:9.5, King:0}
+    let squares = position.squares;
+    let sum_material = 0
+    for (var x = 0; x < squares.length; x ++) {
+        if (squares[x] !== 'boundary' && squares[x] !== null) {
+            if (squares[x].player === 'white') {
+                sum_material = sum_material + scoring[squares[x].name];
+            }
+            else {
+                sum_material = sum_material - scoring[squares[x].name];
+            }
+        }
+    }
+
+    return (sum_material)
+}
+
+
+export {Move, Position, make_move, evaluate_position, breadth_search}
