@@ -33,7 +33,7 @@ function make_move(position, move) {
     let end = move.end
 
     /*Starting Rook Locations */
-    let wk_rook = 96;
+    let wk_rook = 98;
     let wq_rook = 91;
     let bk_rook = 28;
     let bq_rook = 21;
@@ -88,6 +88,21 @@ function make_move(position, move) {
             castle_state[2] = 0;
         }
         else if (start === bq_rook) {
+            castle_state[3] = 0;
+        }
+    }
+    /* Change castling states for rook captures */
+    if (squares[end] !== null && squares[end].name === 'Rook') {
+        if (end === wk_rook) {
+            castle_state[0] = 0;
+        }
+        else if (end === wq_rook) {
+            castle_state[1] = 0;
+        }
+        else if (end === bk_rook) {
+            castle_state[2] = 0;
+        }
+        else if (end === bq_rook) {
             castle_state[3] = 0;
         }
     }

@@ -1,7 +1,7 @@
 import { initialize_engine_board, King, Rook, Pawn, Knight, Bishop, Queen } from './Pieces.js';
 import { make_move, Position,breadth_search, alphabeta_search } from './Engine.js';
 import { legal_moves, engine_squares} from './EngineMoves';
-import {ParseFen, evaluate_material} from './BoardFunctions';
+import { ParseFen, evaluate_material } from './BoardFunctions';
 
 /* Compare possible move generation to known possible move generation.  */
 function test() {
@@ -296,12 +296,31 @@ function get_king_locations(squares) {
     let king_locations = [wk_location, bk_location]
     return king_locations;
 }
+function perft_chessjs_test() {
+    /*
+    var Chess = require('./chess').Chess;
+    var chess = new Chess();
+
+    while (!chess.game_over()) {
+        var moves = chess.moves();
+        var move = moves[Math.floor(Math.random() * moves.length)];
+        chess.move(move);
+    }
+    console.log(chess.pgn());
+    */
+}
+
 var position_count = 0;
-function perft_test() {
-    let position = ParseFen('r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1');
+function perft_test(position, depth) {
+    if (position === null) {
+        position = ParseFen('r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1');
+    }
+    if (depth === null) {
+        depth = 2;
+    }
 
     let t1 = performance.now();
-    perft(2, position);
+    perft(depth, position);
     let t2 = performance.now();
 
     console.log('positions per second', position_count*1000/(t2-t1), "total positions", position_count)
@@ -352,4 +371,4 @@ function perft(depth, position) {
 }
 
 
-export { test, ParseFen }
+export { test, perft_test, ParseFen, perft_chessjs_test }

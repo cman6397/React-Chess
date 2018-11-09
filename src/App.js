@@ -7,19 +7,26 @@ import DropSquare from './DropSquare';
 import { Knight, Bishop, Rook, Queen, initialize_engine_board} from './Pieces.js';
 import { legal_moves, is_legal, create_move} from './EngineMoves';
 import {normal_squares,coordinate_change, ParseFen} from './BoardFunctions';
-import { test} from './Tests';
+import { perft_test, perft_chessjs_test } from './Tests';
 import { make_move, Position, alphabeta_search} from './Engine';
 
 class Chess extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      history: [{ position: ParseFen('r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1')}],
+      history: [{ position: new Position('white', initialize_engine_board(), [95, 25], [1, 1, 1, 1], 0) }],
       drag_end: null,
       promotion:{class:'hidden',start: null, end: null, player: null},
       status:null,
-      tests: test()
+      //tests: test()
     }
+  }
+  test() {
+      const history = this.state.history.slice();
+      const position = history[history.length - 1].position;
+
+      perft_chessjs_test();
+      perft_test(position,5)
   }
   reset() {
     this.setState({
@@ -41,6 +48,21 @@ class Chess extends Component {
       history: history,
       status:null
     });
+    }
+
+  setup_fen(value) {
+      let position = ParseFen(value);
+      if (position !== 'FEN Error') {
+          this.setState({
+              history: [{ position: position }],
+              drag_end: null,
+              promotion: { class: 'hidden', start: null, end: null, player: null },
+              status: null
+          });
+      }
+      else {
+          alert('FEN ERROR');
+      }
   }
 
   engine_move() {
@@ -127,8 +149,12 @@ class Chess extends Component {
 
     return (
     <div className = 'game_container'>
-            <div className='status'> {status} </div>
+      <div className='status'> {status} </div>
+      <FenPosition
+      setup_fen={(value) => this.setup_fen(value)}
+      />
       <Buttons 
+      test={() => this.test()}
       back = {() => this.back()}
       reset = {() => this.reset()}
       engine_move = {() => this.engine_move()}
@@ -234,7 +260,11 @@ class Square extends React.Component {
 
 function Buttons(props) {
   return (
-    <div>
+   <div>
+      <button
+      className="test_button"
+      onClick={() => props.test()} > Test
+      </button>
       <button 
       className = "reset_button" 
       onClick={() => props.reset()} > Reset
@@ -250,6 +280,35 @@ function Buttons(props) {
     </div>
   );
 } 
+
+class FenPosition extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = { value: '' };
+    }
+
+    handleChange(event) {
+        this.setState({ value: event.target.value });
+    }
+
+    submit(event) {
+        event.preventDefault();
+        this.props.setup_fen(this.state.value);
+    }
+
+    render() {
+    return (
+        <form onSubmit={(event) => this.submit(event)} className='fen_input'>
+            <label>
+                FEN String: &nbsp;
+              <input type="text" size='25' value={this.state.value} onChange={(event) => this.handleChange(event)} />
+            </label>
+            <input type="submit" value="Set Position" />
+        </form>
+    );
+    }
+
+}
 
 class Promotion extends React.Component {
   render(){

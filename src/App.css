@@ -62,7 +62,16 @@
   top:60px;
   cursor: pointer;
   font-size:13px;
+}
 
+.test_button {
+    height: 25px;
+    width: 50px;
+    position: absolute;
+    left: 200px;
+    top: 30px;
+    cursor: pointer;
+    font-size: 13px;
 }
 
 .engine_button {
@@ -115,6 +124,16 @@
   cursor: pointer;
 }
 .promotion_button:focus {outline:0;}
+
+.fen_input {
+    position:relative;
+    top:510px;
+    right:15px;
+
+}
+label {
+    margin:10px;
+}
 
 
 

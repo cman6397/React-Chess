@@ -5,6 +5,9 @@ var piece_scores = { Pawn: 1, Knight: 3, Bishop: 3.3, Rook: 5, Queen: 9.5, King:
 
 /* Turn FEN into chess position object */
 function ParseFen(fen) {
+    if (fen.length === 0) {
+        return "FEN Error";
+    }
     let squares = Array(64).fill(null);
     let player = null;
     let castle_state = [0,0,0,0];
@@ -53,8 +56,7 @@ function ParseFen(fen) {
                 fenCnt = fenCnt + 1;
                 continue;  
             default:
-                console.log("FEN error");
-                return;
+                return "FEN error";
         }
         for (i = 0; i < count; i++) {	
 			sq64 = rank*8 + file;            
@@ -65,11 +67,11 @@ function ParseFen(fen) {
     } // while loop end
 	
 	//rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
-	player = (fen[fenCnt] == 'w') ? 'white' : 'black';
+	player = (fen[fenCnt] === 'w') ? 'white' : 'black';
     fenCnt += 2;
 	
 	for (i = 0; i < 4; i++) {
-        if (fen[fenCnt] == ' ') {
+        if (fen[fenCnt] === ' ') {
             break;
         }		
 		switch(fen[fenCnt]) {
@@ -83,11 +85,10 @@ function ParseFen(fen) {
 	}
     fenCnt++;	
 	
-	if (fen[fenCnt] != '-') {        
+	if (fen[fenCnt] !== '-') {        
 		file = fen[fenCnt].charCodeAt() - 'a'.charCodeAt();
-		rank = fen[fenCnt + 1].charCodeAt() - '1'.charCodeAt();	
-		console.log("fen[fenCnt]:" + fen[fenCnt] + " File:" + file + " Rank:" + rank);	
-		console.log('En Passant', file, rank)	
+        rank = fen[fenCnt + 1].charCodeAt() - '1'.charCodeAt();	
+        en_passant_square = coordinate_change((7-rank) * 8 + file);	
     }
     squares = engine_squares(squares);
     let king_locations = get_king_locations(squares);
