@@ -7,13 +7,13 @@ import DropSquare from './DropSquare';
 import { Knight, Bishop, Rook, Queen, initialize_engine_board} from './Pieces.js';
 import { legal_moves, is_legal, normal_squares, create_move, coordinate_change } from './EngineMoves';
 import { test } from './Tests';
-import { make_move, Position} from './Engine';
+import { make_move, Position, alphabeta_search} from './Engine';
 
 class Chess extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      history: [{ position: new Position('white', initialize_engine_board(), [95, 25], [1, 1, 1, 1])}],
+      history: [{ position: new Position('white', initialize_engine_board(), [95, 25], [1, 1, 1, 1], 0)}],
       drag_end: null,
       promotion:{class:'hidden',start: null, end: null, player: null},
       status:null,
@@ -22,7 +22,7 @@ class Chess extends Component {
   }
   reset() {
     this.setState({
-      history: [{ position: new Position('white', initialize_engine_board(), [95, 25], [1, 1, 1, 1])}],
+      history: [{ position: new Position('white', initialize_engine_board(), [95, 25], [1, 1, 1, 1], 0)}],
       drag_end: null,
       promotion:{class:'hidden',start: null, end: null, player: null},
       status:null
@@ -46,11 +46,15 @@ class Chess extends Component {
     const history = this.state.history.slice();
     const position = history[history.length - 1].position;
 
-    let engine_moves = legal_moves(position)
+    let engine_move = alphabeta_search(position, 5, -1000, 1000, null).move;
+    if (engine_move === null) {
+        this.setState({
+            status: 'Game Over',
+        });
+        return;
+    }
 
-    let move = engine_moves[Math.floor(Math.random() * engine_moves.length)];
-    let new_position = make_move(position, move);
-
+    let new_position = make_move(position, engine_move);
     this.setState({
       history: history.concat([{position: new_position}]),
     });
@@ -92,11 +96,17 @@ class Chess extends Component {
   }
 
   change_states(history, position, start, end, promotion_piece) {
-    let possible_moves = legal_moves(position);
-    let move = create_move(start, end, position, promotion_piece);
-
-    if (is_legal(move, possible_moves)) {
-      let new_position = make_move(position, move);
+      let possible_moves = legal_moves(position);
+      let move = create_move(start, end, position, promotion_piece);
+      if (is_legal(move, possible_moves)) {
+        let new_position = make_move(position, move);
+        let new_moves = legal_moves(new_position);
+    
+        if (new_moves.length === 0) {
+            this.setState({
+              status: 'Game Over',
+            });
+        }
       this.setState({
         history: history.concat([{position: new_position}]),
         drag_end: null,
@@ -104,7 +114,7 @@ class Chess extends Component {
     }
   }
 
-  render() {
+    render() {
     let history= this.state.history;
     let current_position = history[history.length - 1].position
     let current_squares = normal_squares(current_position.squares);
@@ -114,7 +124,7 @@ class Chess extends Component {
 
     return (
     <div className = 'game_container'>
-    <div className = 'status'> {status} </div>
+            <div className='status'> {status} </div>
       <Buttons 
       back = {() => this.back()}
       reset = {() => this.reset()}

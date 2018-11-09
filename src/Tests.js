@@ -1,5 +1,5 @@
 import { initialize_engine_board, King, Rook, Pawn, Knight, Bishop, Queen } from './Pieces.js';
-import { make_move, Position,breadth_search, evaluate_position, alpha_beta } from './Engine.js';
+import { make_move, Position,breadth_search, evaluate_position, alphabeta_search } from './Engine.js';
 import { legal_moves, engine_squares} from './EngineMoves';
 
 /* Compare possible move generation to known possible move generation.  */
@@ -15,7 +15,7 @@ function test_positions() {
     var t0 = performance.now();
     let depth = 4; 
 
-    let chess_position = new Position('white', initialize_engine_board(), [95, 25], [1,1,1,1]);
+    let chess_position = new Position('white', initialize_engine_board(), [95, 25], [1,1,1,1], 0);
 
     let positions = breadth_search(depth, [chess_position]);
     let total_positions = positions.length
@@ -24,12 +24,16 @@ function test_positions() {
     console.log('nodes per second', total_positions / ((t1 - t0) / 1000), 'total_positions:', total_positions, 'depth:', depth);
 
     t0 = performance.now();
-
-    let evaluation = alpha_beta(chess_position, 4,-10000, 10000, 0);
-
+    let move_count = breadth_search_moves(5, [chess_position]);
     t1 = performance.now();
 
-    console.log((t1-t0) / 1000, evaluation)
+    console.log('move count',move_count, 'moves per second', (move_count*1000)/(t1-t0), 'depth:', 5);
+
+    t0 = performance.now();
+    let evaluation = alphabeta_search(chess_position, depth,-10000, 10000, null);
+    t1 = performance.now();
+
+    console.log("Alpha-Beta nodes per second", total_positions/((t1-t0)/1000), evaluation)
 }
 
 /*Test Piece Moves */
@@ -99,21 +103,6 @@ function test_pawn() {
 
     pieces = [new King('white'), new King('black'), white_pawn, black_pawn];
     locations = [60, 4, 27, 18];
-
-    if (!test_num_moves(pieces, locations, 'white', [0, 0, 0, 0], 7)) {
-        passed = false;
-    }
-
-    /*en passant test*/
-    white_pawn = new Pawn('white');
-    white_pawn.has_moved = true;
-
-    black_pawn = new Pawn('black');
-    black_pawn.has_moved = true;
-    black_pawn.just_moved_two = true;
-
-    pieces = [new King('white'), new King('black'), white_pawn, black_pawn];
-    locations = [60, 4, 26, 25];
 
     if (!test_num_moves(pieces, locations, 'white', [0, 0, 0, 0], 7)) {
         passed = false;
@@ -227,7 +216,7 @@ function test_position_class() {
     let moves = legal_moves(chess_position);
 
     let positions = [];
-    let total_moves = 10000;
+    let total_moves = 100000;
     let total_positions = 20000; 
 
     var m0 = performance.now();
@@ -274,7 +263,7 @@ function test_num_moves(pieces, locations, player, castle_state, num_moves){
     
     squares = engine_squares(squares);
     let king_locations = get_king_locations(squares);
-    let chess_position = new Position(player, squares, king_locations, castle_state);
+    let chess_position = new Position(player, squares, king_locations, castle_state, null, null);
 
     let moves = legal_moves(chess_position);
 
@@ -304,6 +293,33 @@ function get_king_locations(squares) {
     }
     let king_locations = [wk_location, bk_location]
     return king_locations;
+}
+
+/* Breadth First Search.*/
+function breadth_search_moves(depth, positions) {
+    if (depth === 1) {
+        let move_count = 0;
+        for (var k = 0; k < positions.length; k++) {
+            let current_position = positions[k];
+            let moves = legal_moves(current_position);
+            move_count = move_count + moves.length;
+        }
+        return move_count
+    }
+    else {
+        let new_positions = [];
+        for (var j = 0; j < positions.length; j++) {
+            let current_position = positions[j];
+            let moves = legal_moves(current_position);
+
+            for (var i = 0; i < moves.length; i++) {
+                let current_move = moves[i];
+                let next_position = make_move(current_position, current_move)
+                new_positions.push(next_position);
+            }
+        }
+        return breadth_search_moves(depth - 1, new_positions);
+    }
 }
 
 export { test }

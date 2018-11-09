@@ -2,13 +2,14 @@
 import { Knight, Bishop, Rook, Queen } from './Pieces.js';
 import { Move } from './Engine.js';
 
-/* Return all legal moves given a board position and the player to move (white or black) */
+/* Return all legal moves given a position */
 function legal_moves(position) {
     let squares = position.squares;
     let player = position.player;
     let king_location = (player === 'white') ? position.king_locations[0] : position.king_locations[1];
     let pinned_pieces = get_pinned_pieces(squares, king_location, player);
     let castle_state = position.castle_state;
+    let en_passant_square = position.en_passant_square;
 
     let [attacking_pieces, attacked_squares] = king_check_squares(squares, king_location, player);
 
@@ -24,7 +25,7 @@ function legal_moves(position) {
             /* Check for piece color and send move generation to subfunctions*/
             if (squares[i].player === player) {
                 if (squares[i].name === 'Pawn') {
-                    legal_moves = legal_moves.concat(pawn_moves(squares, i, player, pinned_pieces));
+                    legal_moves = legal_moves.concat(pawn_moves(squares, i, player, pinned_pieces, en_passant_square));
                 }
                 else if (squares[i].name === 'Knight') {
                     legal_moves = legal_moves.concat(knight_moves(squares, i, player, pinned_pieces));
@@ -68,7 +69,7 @@ function is_legal(move, legal_moves) {
 /************************************************************ Piece Move Generation Functions ************************************************/
 
 /* Get legal moves for a pawn given a board position */
-function pawn_moves(squares, location, player, pinned_pieces) {
+function pawn_moves(squares, location, player, pinned_pieces, en_passant_square) {
     let legal_moves = [];
     let pawn = squares[location];
 
@@ -81,39 +82,31 @@ function pawn_moves(squares, location, player, pinned_pieces) {
 
     /*legal to move 2 spaces forward*/
     if (!pawn.has_moved && squares[forward_two] === null && squares[forward_one] === null) {
-        legal_moves = legal_moves.concat(pinned_pawn_move(pawn, location, forward_two, pinned_pieces, [0, 1], false, null));
+        legal_moves = legal_moves.concat(create_pawn_move(pawn, location, forward_two, pinned_pieces, [0, 1], false, null));
     }
     /*legal to move 1 space ahead*/
     if (squares[forward_one] === null) {
-        legal_moves = legal_moves.concat(pinned_pawn_move(pawn, location, forward_one, pinned_pieces, [0, 1], false, null));
+        legal_moves = legal_moves.concat(create_pawn_move(pawn, location, forward_one, pinned_pieces, [0, 1], false, null));
     }
     /*legal to take left*/
     if (squares[diag_left] !== null && squares[diag_left] !== 'boundary') {
         if (squares[diag_left].player !== player) {
-            legal_moves = legal_moves.concat(pinned_pawn_move(pawn, location, diag_left, pinned_pieces, [-1, 1], false, null));
+            legal_moves = legal_moves.concat(create_pawn_move(pawn, location, diag_left, pinned_pieces, [-1, 1], false, null));
         }
     }
     /*legal to take right*/
     if (squares[diag_right] !== null && squares[diag_right] !== 'boundary') {
         if (squares[diag_right].player !== player) {
-            legal_moves = legal_moves.concat(pinned_pawn_move(pawn, location, diag_right, pinned_pieces, [1, 1], false, null));
+            legal_moves = legal_moves.concat(create_pawn_move(pawn, location, diag_right, pinned_pieces, [1, 1], false, null));
         }
     }
     /*legal to take en passant right*/
-    if (squares[right_one] !== null && squares[right_one] !== 'boundary') {
-        if (squares[right_one].name === 'Pawn') {
-            if (squares[right_one].player !== player && squares[right_one].just_moved_two) {
-                legal_moves = legal_moves.concat(pinned_pawn_move(pawn, location, diag_right, pinned_pieces, [1, 1], true, right_one));
-            }
-        }
+    if (diag_right === en_passant_square) {
+        legal_moves = legal_moves.concat(create_pawn_move(pawn, location, diag_right, pinned_pieces, [1, 1], true, right_one));
     }
     /*legal to take en passant left*/
-    if (squares[left_one] !== null && squares[left_one] !== 'boundary') {
-        if (squares[left_one].name === 'Pawn') {
-            if (squares[left_one].player !== player && squares[left_one].just_moved_two) {
-                legal_moves = legal_moves.concat(pinned_pawn_move(pawn, location, diag_left, pinned_pieces, [-1, 1], true, left_one));
-            }
-        }
+    if (diag_left === en_passant_square) {
+        legal_moves = legal_moves.concat(create_pawn_move(pawn, location, diag_left, pinned_pieces, [-1, 1], true, left_one));
     }
 
     return legal_moves;
@@ -474,7 +467,7 @@ function get_pinned_piece(boundary_squares, pin_direction, king_location, player
 /****************************************************** Move Checking/Exploring and Board Navigating Helper Functions *********************************************************/
 
 /* Given a possible pawn move check if the move is legal and add the move */
-function pinned_pawn_move(pawn, pawn_location, pawn_end_location, pinned_pieces, move_direction, is_en_passant, en_passant_capture) {
+function create_pawn_move(pawn, pawn_location, pawn_end_location, pinned_pieces, move_direction, is_en_passant, en_passant_capture) {
     let legal_moves = [];
     let pin_direction = null;
     let inverse_direction = null;
@@ -743,7 +736,7 @@ function create_move(start, end, position, promotion_piece) {
                 en_passant = start + 1;
             }
             else {
-                en_passant = start + 1;
+                en_passant = start - 1;
             }
 
         }
@@ -756,16 +749,16 @@ function create_move(start, end, position, promotion_piece) {
             }
         }
     }
-    /* Handle Castling */
+
     if (piece.name === 'King') {
         /* kingside */
         if ((end - start) === 2) {
-            rook_start = squares[end + 1]
-            rook_end = squares[start + 1]
+            rook_start = end + 1
+            rook_end = start + 1
         }
         else if ((start - end) === 2) {
-            rook_start = squares[end - 2]
-            rook_end = squares[start - 1]
+            rook_start = end - 2
+            rook_end = start - 1
         }
     }
     return new Move(start, end, en_passant, rook_start, rook_end, promotion_piece)

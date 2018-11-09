@@ -1,14 +1,18 @@
 
-import { legal_moves} from './EngineMoves';
+import { legal_moves } from './EngineMoves';
+
+var piece_scores = { Pawn: 1, Knight: 3, Bishop: 3.3, Rook: 5, Queen: 9.5, King: 0 }
 
 /* king locations = [white king, black king]
  * castle_state = [white kingside, white queenside, black kingside, black queenside] 1 for can castle 0 for cannot castle */
 class Position {
-    constructor(player, squares, king_locations, castle_state) {
+    constructor(player, squares, king_locations, castle_state, material_balance, en_passant_square) {
         this.player = player;
         this.squares = squares;
         this.king_locations = king_locations;
         this.castle_state = castle_state;
+        this.material_balance = material_balance;
+        this.en_passant_square = en_passant_square;
     }
 }
 
@@ -40,14 +44,20 @@ function make_move(position, move) {
     let piece = JSON.parse(JSON.stringify(squares[start]));
     let king_locations = position.king_locations.slice();
     let castle_state = position.castle_state.slice();
+    let material_balance = position.material_balance;
+    let en_passant_square = null;
 
     if (move.en_passant_capture !== null) {
         squares[move.en_passant_capture] = null;
     }
+    /* Pawn Just Moved Two */
+    if (piece.name === 'Pawn' && Math.abs(start - end) === 20) {
+        en_passant_square = start + (end - start) / 2;
+    }
+
     /*Castling move*/
     if (move.rook_start !== null) {
         let rook = JSON.parse(JSON.stringify(squares[move.rook_start]));
-        castle_state = [0, 0, 0, 0];
         squares[move.rook_start] = null;
         squares[move.rook_end] = rook;
         rook.has_moved = true;
@@ -80,6 +90,15 @@ function make_move(position, move) {
             castle_state[3] = 0;
         }
     }
+    /*Change material Balance */
+    if (material_balance !== null && squares[end] !== null) {
+        if (position.player === 'white') {
+            material_balance = material_balance + piece_scores[squares[end].name];
+        }
+        else {
+            material_balance = material_balance - piece_scores[squares[end].name];
+        }
+    }
 
     /*Promotion */
     if (move.promotion_piece !== null) {
@@ -88,12 +107,11 @@ function make_move(position, move) {
 
     squares[start] = null;
     squares[end] = piece;
-
     piece.has_moved = true;
 
     (player === 'white') ? player = 'black' : player = 'white';
 
-    return new Position(player, squares, king_locations, castle_state);
+    return new Position(player, squares, king_locations, castle_state, material_balance, en_passant_square);
 }
 
 /* Breadth First Search.*/
@@ -117,62 +135,68 @@ function breadth_search(depth, positions) {
     }
 }
 
-function alpha_beta(position, depth, alpha, beta, positions_searched) {
+function alphabeta_search(position, depth, alpha, beta, move) {
     if (depth === 0) {
-        return {value: evaluate_position(position)};
+        return { value: position.material_balance, move: null};
     }
     let moves = legal_moves(position);
-    positions_searched = positions_searched + moves.length;
     //Checkmate
     if (moves.length === 0) {
         if (position.player === 'white') {
-            return {value: 1000};
+            return {value: -1000, move: null};
         }
         else {
-            return {value: -1000};
+            return {value: 1000, move: null};
         }
     }
     if (position.player === 'white') {
         let value = -10000;
+        let best_move = move;
         for (var x = 0; x < moves.length; x ++) {
             let current_move = moves[x];
             let current_position = make_move(position, current_move);
-            value = Math.max(value, alpha_beta(current_position, depth-1, alpha, beta, positions_searched).value);
-            alpha = Math.max(alpha, value);
+            value = Math.max(value, alphabeta_search(current_position, depth - 1, alpha, beta, current_move).value);
+            if (value > alpha) {
+                alpha = value;
+                best_move = current_move;
+            }
             if (alpha >= beta) {
                 break;
             }
         }
-        return {value: value};
+        return {value: value, move:best_move};
     }
     else {
         let value = 10000;
+        let best_move = move;
         for (var k = 0; k < moves.length; k ++) {
             let current_move = moves[k];
             let current_position = make_move(position, current_move);
-            value = Math.min(value, alpha_beta(current_position, depth-1, alpha, beta, positions_searched).value);
-            beta = Math.min(beta, value);
+            value = Math.min(value, alphabeta_search(current_position, depth-1, alpha, beta, current_move).value);
+            if (value < beta) {
+                beta = value;
+                best_move = current_move;
+            }
             if (alpha >= beta) {
                 break;
             }
         }
-        return {value: value};
+        return {value: value, move: best_move};
     }
 }
 
 
 /*All evaluations with respect to white */
 function evaluate_position(position) {
-    let scoring = {Pawn: 1, Knight:3, Bishop: 3.3, Rook: 5, Queen:9.5, King:0}
     let squares = position.squares;
     let sum_material = 0
     for (var x = 0; x < squares.length; x ++) {
         if (squares[x] !== 'boundary' && squares[x] !== null) {
             if (squares[x].player === 'white') {
-                sum_material = sum_material + scoring[squares[x].name];
+                sum_material = sum_material + piece_scores[squares[x].name];
             }
             else {
-                sum_material = sum_material - scoring[squares[x].name];
+                sum_material = sum_material - piece_scores[squares[x].name];
             }
         }
     }
@@ -181,4 +205,4 @@ function evaluate_position(position) {
 }
 
 
-export {Move, Position, make_move, evaluate_position, breadth_search, alpha_beta}
+export {Move, Position, make_move, evaluate_position, breadth_search, alphabeta_search}
