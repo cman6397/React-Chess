@@ -1,13 +1,15 @@
 import { initialize_engine_board, King, Rook, Pawn, Knight, Bishop, Queen } from './Pieces.js';
-import { make_move, Position,breadth_search, evaluate_position, alphabeta_search } from './Engine.js';
+import { make_move, Position,breadth_search, alphabeta_search } from './Engine.js';
 import { legal_moves, engine_squares} from './EngineMoves';
+import {ParseFen, evaluate_material} from './BoardFunctions';
 
 /* Compare possible move generation to known possible move generation.  */
 function test() {
-    test_position_class();
-    test_positions();
+    //test_position_class();
+    //test_positions();
     test_pieces();
-    test_evaluation();
+    //test_evaluation();
+    perft_test();
    
 }
 /*Check number of positions found.  1) 20, 2) 400, 3) 8902, 4) 197281 for starting position */
@@ -240,13 +242,13 @@ function test_evaluation(){
     let num_positions = 1000000
     let chess_position = new Position('white', initialize_engine_board(), [95, 25], [1, 1, 1, 1]);
 
-    if (evaluate_position(chess_position) !== 0){
+    if (evaluate_material(chess_position.squares) !== 0){
         console.log('EVALUATION FAILED')
     }
 
     var t1 = performance.now();
     for (var k = 0; k < num_positions; k++) {
-        evaluate_position(chess_position)
+        evaluate_material(chess_position.squares)
     }
     var t2 = performance.now();
 
@@ -294,6 +296,17 @@ function get_king_locations(squares) {
     let king_locations = [wk_location, bk_location]
     return king_locations;
 }
+var position_count = 0;
+function perft_test() {
+    let position = ParseFen('r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1');
+
+    let t1 = performance.now();
+    perft(2, position);
+    let t2 = performance.now();
+
+    console.log('positions per second', position_count*1000/(t2-t1), "total positions", position_count)
+
+}
 
 /* Breadth First Search.*/
 function breadth_search_moves(depth, positions) {
@@ -322,4 +335,21 @@ function breadth_search_moves(depth, positions) {
     }
 }
 
-export { test }
+function perft(depth, position) {
+    if (depth === 0) {
+        position_count = position_count + 1;
+        return;
+    }
+    else {
+        let moves = legal_moves(position);
+        for (var i = 0; i < moves.length; i++) {
+            let current_move = moves[i];
+            let next_position = make_move(position, current_move)
+            perft(depth-1, next_position);
+        }
+        return;
+    }
+}
+
+
+export { test, ParseFen }

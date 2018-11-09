@@ -50,6 +50,7 @@ function make_move(position, move) {
     if (move.en_passant_capture !== null) {
         squares[move.en_passant_capture] = null;
     }
+
     /* Pawn Just Moved Two */
     if (piece.name === 'Pawn' && Math.abs(start - end) === 20) {
         en_passant_square = start + (end - start) / 2;
@@ -135,6 +136,7 @@ function breadth_search(depth, positions) {
     }
 }
 
+
 function alphabeta_search(position, depth, alpha, beta, move) {
     if (depth === 0) {
         return { value: position.material_balance, move: null};
@@ -186,23 +188,4 @@ function alphabeta_search(position, depth, alpha, beta, move) {
 }
 
 
-/*All evaluations with respect to white */
-function evaluate_position(position) {
-    let squares = position.squares;
-    let sum_material = 0
-    for (var x = 0; x < squares.length; x ++) {
-        if (squares[x] !== 'boundary' && squares[x] !== null) {
-            if (squares[x].player === 'white') {
-                sum_material = sum_material + piece_scores[squares[x].name];
-            }
-            else {
-                sum_material = sum_material - piece_scores[squares[x].name];
-            }
-        }
-    }
-
-    return (sum_material)
-}
-
-
-export {Move, Position, make_move, evaluate_position, breadth_search, alphabeta_search}
+export {Move, Position, make_move, breadth_search, alphabeta_search}

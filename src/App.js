@@ -5,15 +5,16 @@ import HTML5Backend from 'react-dnd-html5-backend';
 import ReactPiece from './DragPiece';
 import DropSquare from './DropSquare';
 import { Knight, Bishop, Rook, Queen, initialize_engine_board} from './Pieces.js';
-import { legal_moves, is_legal, normal_squares, create_move, coordinate_change } from './EngineMoves';
-import { test } from './Tests';
+import { legal_moves, is_legal, create_move} from './EngineMoves';
+import {normal_squares,coordinate_change, ParseFen} from './BoardFunctions';
+import { test} from './Tests';
 import { make_move, Position, alphabeta_search} from './Engine';
 
 class Chess extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      history: [{ position: new Position('white', initialize_engine_board(), [95, 25], [1, 1, 1, 1], 0)}],
+      history: [{ position: ParseFen('r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1')}],
       drag_end: null,
       promotion:{class:'hidden',start: null, end: null, player: null},
       status:null,
@@ -46,7 +47,8 @@ class Chess extends Component {
     const history = this.state.history.slice();
     const position = history[history.length - 1].position;
 
-    let engine_move = alphabeta_search(position, 5, -1000, 1000, null).move;
+    let engine_move = alphabeta_search(position, 1, -1000, 1000, null).move;
+  
     if (engine_move === null) {
         this.setState({
             status: 'Game Over',
@@ -77,7 +79,7 @@ class Chess extends Component {
       this.setState({promotion:promotion})
       return;
     }
-    this.change_states(history, position, drag_start, drag_end, null)
+    this.change_states(history, position, drag_start, drag_end, null);
   };
 
   handle_promotion(piece) {
@@ -107,6 +109,7 @@ class Chess extends Component {
               status: 'Game Over',
             });
         }
+      
       this.setState({
         history: history.concat([{position: new_position}]),
         drag_end: null,
@@ -133,8 +136,6 @@ class Chess extends Component {
       <div className = 'board_container' >
         <Board 
           squares = {current_squares}
-          onDragStart = {(id) => this.drag_start(id)}
-          onDragEnd = {(id) => this.drag_end(id)}
           onDrop = {(id) => this.drop(id)}
           player = {player}
           handle_drop={(id) => this.handle_drop(id)}
