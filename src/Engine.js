@@ -1,7 +1,9 @@
 
 import { legal_moves } from './EngineMoves';
 
-var piece_scores = { Pawn: 1, Knight: 3, Bishop: 3.3, Rook: 5, Queen: 9.5, King: 0 }
+var piece_scores = { Pawn: 1, Knight: 3, Bishop: 3.3, Rook: 5, Queen: 9.5, King: 0 };
+var INFINITY = 10000;
+var CHECKMATE = 9000;
 
 /* king locations = [white king, black king]
  * castle_state = [white kingside, white queenside, black kingside, black queenside] 1 for can castle 0 for cannot castle */
@@ -119,6 +121,12 @@ function make_move(position, move) {
     /*Promotion */
     if (move.promotion_piece !== null) {
         piece = move.promotion_piece;
+        if (piece.player === 'white') {
+            material_balance = material_balance + piece_scores[piece.name] - 1;
+        }
+        else {
+            material_balance = material_balance - piece_scores[piece.name] + 1;
+        }
     }
 
     squares[start] = null;
@@ -151,8 +159,7 @@ function breadth_search(depth, positions) {
     }
 }
 
-
-function alphabeta_search(position, depth, alpha, beta, move) {
+function alphabeta(position, depth, alpha, beta) {
     if (depth === 0) {
         return { value: position.material_balance, move: null};
     }
@@ -160,19 +167,20 @@ function alphabeta_search(position, depth, alpha, beta, move) {
     //Checkmate
     if (moves.length === 0) {
         if (position.player === 'white') {
-            return {value: -1000, move: null};
+            return {value: -CHECKMATE, move: null};
         }
         else {
-            return {value: 1000, move: null};
+            return {value: CHECKMATE, move: null};
         }
     }
+
     if (position.player === 'white') {
-        let value = -10000;
-        let best_move = move;
+        let value = -INFINITY;
+        let best_move = null;
         for (var x = 0; x < moves.length; x ++) {
             let current_move = moves[x];
             let current_position = make_move(position, current_move);
-            value = Math.max(value, alphabeta_search(current_position, depth - 1, alpha, beta, current_move).value);
+            value = Math.max(value, alphabeta_search(current_position, depth - 1, alpha, beta).value);
             if (value > alpha) {
                 alpha = value;
                 best_move = current_move;
@@ -184,12 +192,68 @@ function alphabeta_search(position, depth, alpha, beta, move) {
         return {value: value, move:best_move};
     }
     else {
-        let value = 10000;
+        let value = INFINITY;
+        let best_move = null;
+        for (var k = 0; k < moves.length; k ++) {
+            let current_move = moves[k];
+            let current_position = make_move(position, current_move);
+            value = Math.min(value, alphabeta_search(current_position, depth - 1, alpha, beta).value);
+            if (value < beta) {
+                beta = value;
+                best_move = current_move;
+            }
+            if (alpha >= beta) {
+                break;
+            }
+        }
+        return {value: value, move: best_move};
+    }
+}
+
+/*Give Max Depth and max search time*/
+function alphabeta_search(position, depth, alpha, beta, move, start_time, total_time, best_move, value) {
+    if (depth === 0) {
+        return { value: position.material_balance, move: best_move};
+    }
+    let moves = legal_moves(position);
+    //Checkmate
+    if (moves.length === 0) {
+        if (position.player === 'white') {
+            return {value: -CHECKMATE, move: best_move};
+        }
+        else {
+            return {value: CHECKMATE, move: best_move};
+        }
+    }
+    let elapsed_time = performance.now()-start_time;
+    if (elapsed_time > total_time) {
+        return {value: value, move:best_move};
+    }
+
+    if (position.player === 'white') {
+        let value = -INFINITY;
+        let best_move = move;
+        for (var x = 0; x < moves.length; x ++) {
+            let current_move = moves[x];
+            let current_position = make_move(position, current_move);
+            value = Math.max(value, alphabeta_search(current_position, depth - 1, alpha, beta, current_move, start_time, total_time, best_move, value).value);
+            if (value > alpha) {
+                alpha = value;
+                best_move = current_move;
+            }
+            if (alpha >= beta) {
+                break;
+            }
+        }
+        return {value: value, move:best_move};
+    }
+    else {
+        let value = INFINITY;
         let best_move = move;
         for (var k = 0; k < moves.length; k ++) {
             let current_move = moves[k];
             let current_position = make_move(position, current_move);
-            value = Math.min(value, alphabeta_search(current_position, depth-1, alpha, beta, current_move).value);
+            value = Math.min(value, alphabeta_search(current_position, depth-1, alpha, beta, current_move, start_time, total_time, best_move, value).value);
             if (value < beta) {
                 beta = value;
                 best_move = current_move;

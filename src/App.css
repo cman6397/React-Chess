@@ -24,7 +24,10 @@
 }
 
 .status {
+  position: absolute;
   font-size:25px;
+  left:250px;
+  top:10px;
 }
 
 .board_container {
@@ -62,16 +65,6 @@
   top:60px;
   cursor: pointer;
   font-size:13px;
-}
-
-.test_button {
-    height: 25px;
-    width: 50px;
-    position: absolute;
-    left: 200px;
-    top: 30px;
-    cursor: pointer;
-    font-size: 13px;
 }
 
 .engine_button {

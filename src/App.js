@@ -7,7 +7,6 @@ import DropSquare from './DropSquare';
 import { Knight, Bishop, Rook, Queen, initialize_engine_board} from './Pieces.js';
 import { legal_moves, is_legal, create_move} from './EngineMoves';
 import {normal_squares,coordinate_change, ParseFen} from './BoardFunctions';
-import { perft_test, perft_chessjs_test } from './Tests';
 import { make_move, Position, alphabeta_search} from './Engine';
 
 class Chess extends Component {
@@ -18,15 +17,7 @@ class Chess extends Component {
       drag_end: null,
       promotion:{class:'hidden',start: null, end: null, player: null},
       status:null,
-      //tests: test()
     }
-  }
-  test() {
-      const history = this.state.history.slice();
-      const position = history[history.length - 1].position;
-
-      perft_chessjs_test();
-      perft_test(position,5)
   }
   reset() {
     this.setState({
@@ -38,7 +29,6 @@ class Chess extends Component {
   }
   back() {
     const history = this.state.history.slice();
-
     if (history.length === 1) {
       return;
     }
@@ -69,7 +59,10 @@ class Chess extends Component {
     const history = this.state.history.slice();
     const position = history[history.length - 1].position;
 
-    let engine_move = alphabeta_search(position, 1, -1000, 1000, null).move;
+    //Time in milliseconds
+    let search_time = 1000;
+    let INFINITY = 10000;
+    let engine_move = alphabeta_search(position, 10, -INFINITY, INFINITY, null, performance.now(), search_time).move;
   
     if (engine_move === null) {
         this.setState({
@@ -94,7 +87,7 @@ class Chess extends Component {
 
     let drag_start = coordinate_change(id);
     let drag_end = coordinate_change(this.state.drag_end);
-    let piece= position.squares[drag_start];
+    let piece = position.squares[drag_start];
     /* promotions */
     if ((drag_end <= 28 || drag_end >= 91) && piece.name === 'Pawn'){
       let promotion = {class:'promotion_container',start: drag_start, end: drag_end, player: position.player}
@@ -154,7 +147,6 @@ class Chess extends Component {
       setup_fen={(value) => this.setup_fen(value)}
       />
       <Buttons 
-      test={() => this.test()}
       back = {() => this.back()}
       reset = {() => this.reset()}
       engine_move = {() => this.engine_move()}
@@ -261,10 +253,6 @@ class Square extends React.Component {
 function Buttons(props) {
   return (
    <div>
-      <button
-      className="test_button"
-      onClick={() => props.test()} > Test
-      </button>
       <button 
       className = "reset_button" 
       onClick={() => props.reset()} > Reset

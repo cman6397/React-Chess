@@ -9,8 +9,13 @@ function legal_moves(position) {
     let player = position.player;
     let king_location = (player === 'white') ? position.king_locations[0] : position.king_locations[1];
     let pinned_pieces = get_pinned_pieces(squares, king_location, player);
+    let en_passant_pins = null;
     let castle_state = position.castle_state;
     let en_passant_square = position.en_passant_square;
+
+    if (en_passant_square !== null) {
+        en_passant_pins = pinned_en_passant(squares,en_passant_square,king_location,player);
+    }
 
     let [attacking_pieces, attacked_squares] = king_check_squares(squares, king_location, player);
     let in_check = (attacking_pieces.length > 0) ? true : false;
@@ -27,7 +32,7 @@ function legal_moves(position) {
             /* Check for piece color and send move generation to subfunctions*/
             if (squares[i].player === player) {
                 if (squares[i].name === 'Pawn') {
-                    legal_moves = legal_moves.concat(pawn_moves(squares, i, player, pinned_pieces, en_passant_square));
+                    legal_moves = legal_moves.concat(pawn_moves(squares, i, player, pinned_pieces, en_passant_square, en_passant_pins));
                 }
                 else if (squares[i].name === 'Knight') {
                     legal_moves = legal_moves.concat(knight_moves(squares, i, player, pinned_pieces));
@@ -71,7 +76,7 @@ function is_legal(move, legal_moves) {
 /************************************************************ Piece Move Generation Functions ************************************************/
 
 /* Get legal moves for a pawn given a board position */
-function pawn_moves(squares, location, player, pinned_pieces, en_passant_square) {
+function pawn_moves(squares, location, player, pinned_pieces, en_passant_square, en_passant_pins) {
     let legal_moves = [];
     let pawn = squares[location];
 
@@ -84,31 +89,31 @@ function pawn_moves(squares, location, player, pinned_pieces, en_passant_square)
 
     /*legal to move 2 spaces forward*/
     if (!pawn.has_moved && squares[forward_two] === null && squares[forward_one] === null) {
-        legal_moves = legal_moves.concat(create_pawn_move(pawn, location, forward_two, pinned_pieces, [0, 1], false, null));
+        legal_moves = legal_moves.concat(create_pawn_move(pawn, location, forward_two, pinned_pieces, [0, 1], false, null, null));
     }
     /*legal to move 1 space ahead*/
     if (squares[forward_one] === null) {
-        legal_moves = legal_moves.concat(create_pawn_move(pawn, location, forward_one, pinned_pieces, [0, 1], false, null));
+        legal_moves = legal_moves.concat(create_pawn_move(pawn, location, forward_one, pinned_pieces, [0, 1], false, null, null));
     }
     /*legal to take left*/
     if (squares[diag_left] !== null && squares[diag_left] !== 'boundary') {
         if (squares[diag_left].player !== player) {
-            legal_moves = legal_moves.concat(create_pawn_move(pawn, location, diag_left, pinned_pieces, [-1, 1], false, null));
+            legal_moves = legal_moves.concat(create_pawn_move(pawn, location, diag_left, pinned_pieces, [-1, 1], false, null, null));
         }
     }
     /*legal to take right*/
     if (squares[diag_right] !== null && squares[diag_right] !== 'boundary') {
         if (squares[diag_right].player !== player) {
-            legal_moves = legal_moves.concat(create_pawn_move(pawn, location, diag_right, pinned_pieces, [1, 1], false, null));
+            legal_moves = legal_moves.concat(create_pawn_move(pawn, location, diag_right, pinned_pieces, [1, 1], false, null, null));
         }
     }
     /*legal to take en passant right*/
     if (diag_right === en_passant_square) {
-        legal_moves = legal_moves.concat(create_pawn_move(pawn, location, diag_right, pinned_pieces, [1, 1], true, right_one));
+        legal_moves = legal_moves.concat(create_pawn_move(pawn, location, diag_right, pinned_pieces, [1, 1], true, right_one, en_passant_pins));
     }
     /*legal to take en passant left*/
     if (diag_left === en_passant_square) {
-        legal_moves = legal_moves.concat(create_pawn_move(pawn, location, diag_left, pinned_pieces, [-1, 1], true, left_one));
+        legal_moves = legal_moves.concat(create_pawn_move(pawn, location, diag_left, pinned_pieces, [-1, 1], true, left_one, en_passant_pins));
     }
 
     return legal_moves;
@@ -250,8 +255,8 @@ function king_moves(squares, location, player, castle_state, in_check) {
 function in_check_handler(legal_moves, king_location, attacked_squares) {
     for (var i = legal_moves.length - 1; i >= 0; i--) {
         let current_move = legal_moves[i];
-        /* If king was not moved out of check and the piece the moved piece did not block the check or eliminate the checking piece than remove the move */
-        if (!attacked_squares.includes(current_move.end) && !attacked_squares.includes(current_move.en_passant) && current_move.start !== king_location) {
+        /* If king was not moved out of check and the moved piece did not block the check or eliminate the checking piece than remove the move */
+        if (!attacked_squares.includes(current_move.end) && !attacked_squares.includes(current_move.en_passant_capture) && current_move.start !== king_location) {
             legal_moves.splice(i, 1);
         }
     }
@@ -420,7 +425,7 @@ function is_attacked(squares, square_location, player) {
 }
 
 /* Get pieces which are pinned to the king */
-function get_pinned_pieces(boundary_squares, king_location, player) {
+function get_pinned_pieces(squares, king_location, player) {
     let pinned_pieces = {};
     let pin_info = null;
     let pinned_directions = [[0, 1], [0, -1], [-1, 0], [1, 0], [1, 1], [-1, 1], [1, -1], [-1, -1]];
@@ -429,10 +434,10 @@ function get_pinned_pieces(boundary_squares, king_location, player) {
     for (var x = 0; x < pinned_directions.length; x++) {
         pin_direction = pinned_directions[x];
         if (pin_direction[0] === 0 || pin_direction[1] === 0) {
-            pin_info = get_pinned_piece(boundary_squares, pin_direction, king_location, player, ['Queen', 'Rook']);
+            pin_info = get_pinned_piece(squares, pin_direction, king_location, player, ['Queen', 'Rook']);
         }
         else {
-            pin_info = get_pinned_piece(boundary_squares, pin_direction, king_location, player, ['Queen', 'Bishop']);
+            pin_info = get_pinned_piece(squares, pin_direction, king_location, player, ['Queen', 'Bishop']);
         }
         if (pin_info !== null) {
             pinned_pieces[pin_info[0]] = pin_info[1];
@@ -441,25 +446,25 @@ function get_pinned_pieces(boundary_squares, king_location, player) {
     return pinned_pieces;
 }
 /* Check for a pinned piece given an attacking direction towards the king */
-function get_pinned_piece(boundary_squares, pin_direction, king_location, player, piece_types) {
+function get_pinned_piece(squares, pin_direction, king_location, player, piece_types) {
     let pin_location = direction(pin_direction, king_location, player);
     let pinned_piece = null;
     /* Go until you run into a piece or boundary */
-    while (boundary_squares[pin_location] === null) {
+    while (squares[pin_location] === null) {
         pin_location = direction(pin_direction, pin_location, player);
     }
 
     /* If you run into same player piece, go until you run into the next piece or boundary */
-    if (boundary_squares[pin_location] !== 'boundary' && boundary_squares[pin_location].player === player) {
+    if (squares[pin_location] !== 'boundary' && squares[pin_location].player === player) {
         pinned_piece = pin_location;
         pin_location = direction(pin_direction, pin_location, player);
-        while (boundary_squares[pin_location] === null) {
+        while (squares[pin_location] === null) {
             pin_location = direction(pin_direction, pin_location, player);
         }
         /* Check if piece on the other end is a piece type associated with a pin */
-        if (boundary_squares[pin_location] !== 'boundary' && boundary_squares[pin_location].player !== player) {
+        if (squares[pin_location] !== 'boundary' && squares[pin_location].player !== player) {
             for (var i = 0; i < piece_types.length; i++) {
-                if (boundary_squares[pin_location].name === piece_types[i]) {
+                if (squares[pin_location].name === piece_types[i]) {
                     return [pinned_piece, pin_direction];
                 }
             }
@@ -467,10 +472,19 @@ function get_pinned_piece(boundary_squares, pin_direction, king_location, player
     }
     return null;
 }
+
+function pinned_en_passant(squares,en_passant_square, king_location, player) {
+    let en_passant_location = forward(1,en_passant_square);
+    let special_squares = squares.slice();
+    special_squares[en_passant_location] = null;
+
+    return get_pinned_pieces(special_squares, king_location, player)
+}
+
 /****************************************************** Move Checking/Exploring and Board Navigating Helper Functions *********************************************************/
 
 /* Given a possible pawn move check if the move is legal and add the move */
-function create_pawn_move(pawn, pawn_location, pawn_end_location, pinned_pieces, move_direction, is_en_passant, en_passant_capture) {
+function create_pawn_move(pawn, pawn_location, pawn_end_location, pinned_pieces, move_direction, is_en_passant, en_passant_capture, en_passant_pins) {
     let legal_moves = [];
     let pin_direction = null;
     let inverse_direction = null;
@@ -491,7 +505,16 @@ function create_pawn_move(pawn, pawn_location, pawn_end_location, pinned_pieces,
     }
     else {
         if (is_en_passant) {
-            legal_moves.push(en_passant(pawn_location, pawn_end_location, en_passant_capture));
+            if (pawn_location in en_passant_pins) {
+                pin_direction = en_passant_pins[pawn_location];
+                inverse_direction = [pin_direction[0] * -1, pin_direction[1] * -1];
+                if (move_direction.toString() === pin_direction.toString() || move_direction.toString() === inverse_direction.toString()) {
+                    legal_moves.push(en_passant(pawn_location, pawn_end_location, en_passant_capture));
+                }
+            }
+            else {
+                legal_moves.push(en_passant(pawn_location, pawn_end_location, en_passant_capture));
+            }
         }
         else {
             /*Handle Promotions*/

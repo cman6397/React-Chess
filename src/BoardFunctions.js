@@ -94,7 +94,7 @@ function ParseFen(fen) {
     let king_locations = get_king_locations(squares);
     let material_balance = evaluate_material(squares);
     let position = new Position(player,squares,king_locations, castle_state,material_balance,en_passant_square);
-
+    set_pawn_states(position);
     return position;
 	
 }
@@ -175,6 +175,27 @@ function coordinate_change(location64) {
                     return coord120;
                 }
                 count = count + 1
+            }
+        }
+    }
+}
+
+function set_pawn_states(position) {
+    let squares = position.squares;
+    for (var x = 0; x < squares.length; x++) {
+        if (squares[x] !== 'boundary' && squares[x] !== null) {
+            let piece = squares[x];
+            if (piece.name === 'Pawn'){
+                if (piece.player === 'white') {
+                    if (x < 81) {
+                        piece.has_moved = true;
+                    }
+                }
+                else{
+                    if (x > 38) {
+                        piece.has_moved = true;
+                    }
+                }
             }
         }
     }
