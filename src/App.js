@@ -143,9 +143,6 @@ class Chess extends Component {
     return (
     <div className = 'game_container'>
       <div className='status'> {status} </div>
-      <FenPosition
-      setup_fen={(value) => this.setup_fen(value)}
-      />
       <Buttons 
       back = {() => this.back()}
       reset = {() => this.reset()}
@@ -160,6 +157,9 @@ class Chess extends Component {
           handle_drag_end = {(id) => this.handle_drag_end(id)}
         />
       </div>
+      <FenPosition
+      setup_fen={(value) => this.setup_fen(value)}
+      />
       <Promotion
         className = {promotion_class}
         player = {player}
@@ -252,7 +252,7 @@ class Square extends React.Component {
 
 function Buttons(props) {
   return (
-   <div>
+   <div className = 'button_container'>
       <button 
       className = "reset_button" 
       onClick={() => props.reset()} > Reset
@@ -289,9 +289,9 @@ class FenPosition extends React.Component {
         <form onSubmit={(event) => this.submit(event)} className='fen_input'>
             <label>
                 FEN String: &nbsp;
-              <input type="text" size='25' value={this.state.value} onChange={(event) => this.handleChange(event)} />
+              <input type="text" className = 'input_box' value={this.state.value} onChange={(event) => this.handleChange(event)} />
             </label>
-            <input type="submit" value="Set Position" />
+            <input type="submit" className = 'input_button' value="Set Position" />
         </form>
     );
     }
