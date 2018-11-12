@@ -1,4 +1,3 @@
-import { engine_squares} from './EngineMoves';
 
 class Piece {
   constructor(player, img_url, name){

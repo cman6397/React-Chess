@@ -9,7 +9,8 @@ import { legal_moves, is_legal} from './EngineMoves';
 import {normal_squares,coordinate_change, ParseFen, initialize_engine_board} from './BoardFunctions';
 import { make_move, Position, create_move, Game} from './Game';
 import { alphabeta_search} from './Search';
-import { game_test, perft_test } from './Tests';
+//import { game_test, perft_test } from './Tests';
+import { play_game, train } from './Evaluation.js';
 
 class Chess extends Component {
   constructor(props) {
@@ -25,20 +26,10 @@ class Chess extends Component {
     const history = this.state.history.slice();
     const position = history[history.length - 1].position;
 
-    perft_test(position,4);
+    //perft_test(position,4);
     
     let chess_game = new Game(position, history);
-    while (chess_game.history.length < 100) {
-      let moves = chess_game.moves();
-      if (moves.length === 0) {
-        break;
-      }
-      let move = moves[Math.floor(Math.random() * moves.length)]
-      chess_game.make_move(move);
-      this.setState({
-        history: history.concat([{position: chess_game.position}])
-      });
-    }
+    train(chess_game);
     
 
   };

@@ -4,124 +4,21 @@ import { legal_moves } from "./EngineMoves";
 var piece_scores = { Pawn: 1, Knight: 3, Bishop: 3.3, Rook: 5, Queen: 9.5, King: 0 };
 
 class Game {
-    constructor(position, history) {
+    constructor(position, history, moves) {
         this.position = position;
         this.history = history;
+        this.moves = moves; 
     }
     moves() {
         return legal_moves(this.position);
     }
     make_move(move) {
-        let start = move.start
-        let end = move.end
-    
-        /*Starting Rook Locations */
-        let wk_rook = 98;
-        let wq_rook = 91;
-        let bk_rook = 28;
-        let bq_rook = 21;
-    
-        let player = this.position.player;
-        let squares = this.position.squares;
-        let piece = this.position.squares[start];
-        let king_locations = this.position.king_locations;
-        let castle_state = this.position.castle_state;
-        let material_balance = this.position.material_balance;
-        let en_passant_square = null;
-    
-        if (move.en_passant_capture !== null) {
-            squares[move.en_passant_capture] = null;
-        }
-    
-        /* Pawn Just Moved Two */
-        if (piece.name === 'Pawn' && Math.abs(start - end) === 20) {
-            en_passant_square = start + (end - start) / 2;
-        }
-    
-        /*Castling move*/
-        if (move.rook_start !== null) {
-            let rook = JSON.parse(JSON.stringify(squares[move.rook_start]));
-            squares[move.rook_start] = null;
-            squares[move.rook_end] = rook;
-            rook.has_moved = true;
-        }
-        /*Change King Location and Castling states*/
-        if (piece.name === 'King') {
-            if (piece.player === 'white') {
-                king_locations[0] = end
-                castle_state[0] = 0;
-                castle_state[1] = 0;
-            }
-            else {
-                king_locations[1] = end
-                castle_state[2] = 0;
-                castle_state[3] = 0;
-            }
-        }
-        /* Change castling states for first rook moves */
-        if (piece.name === 'Rook' && !piece.has_moved) {
-            if (start === wk_rook) {
-                castle_state[0] = 0;
-            }
-            else if (start === wq_rook) {
-                castle_state[1] = 0;
-            }
-            else if (start === bk_rook) {
-                castle_state[2] = 0;
-            }
-            else if (start === bq_rook) {
-                castle_state[3] = 0;
-            }
-        }
-        /* Change castling states for rook captures */
-        if (squares[end] !== null && squares[end].name === 'Rook') {
-            if (end === wk_rook) {
-                castle_state[0] = 0;
-            }
-            else if (end === wq_rook) {
-                castle_state[1] = 0;
-            }
-            else if (end === bk_rook) {
-                castle_state[2] = 0;
-            }
-            else if (end === bq_rook) {
-                castle_state[3] = 0;
-            }
-        }
-        /*Change material Balance */
-        if (material_balance !== null && squares[end] !== null) {
-            if (player === 'white') {
-                material_balance = material_balance + piece_scores[squares[end].name];
-            }
-            else {
-                material_balance = material_balance - piece_scores[squares[end].name];
-            }
-        }
-    
-        /*Promotion */
-        if (move.promotion_piece !== null) {
-            piece = move.promotion_piece;
-            if (piece.player === 'white') {
-                material_balance = material_balance + piece_scores[piece.name] - 1;
-            }
-            else {
-                material_balance = material_balance - piece_scores[piece.name] + 1;
-            }
-        }
-    
-        squares[start] = null;
-        squares[end] = piece;
-        piece.has_moved = true;
-    
-        (player === 'white') ? player = 'black' : player = 'white';
-
-        this.position.player = player;
-        this.position.squares = squares;
-        this.position.king_locations = king_locations;
-        this.position.material_balance = material_balance;
-        this.position.en_passant_square = en_passant_square;
-        
-        this.history = this.history.concat(this.position);
+        const history = this.history.slice();
+        const moves = this.moves.slice();
+        let new_position = make_move(this.position, move);
+        this.position = new_position;
+        this.history = history.concat(new_position);
+        this.moves = moves.concat(move);
     }
 }
 

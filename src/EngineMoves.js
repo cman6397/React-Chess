@@ -680,4 +680,4 @@ function right(distance, location, player) {
 }
 
 
-export { legal_moves, is_legal, engine_squares, normal_squares , get_king_locations, coordinate_change }
+export { legal_moves, is_legal, is_attacked}
