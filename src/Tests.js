@@ -494,10 +494,10 @@ function perft_search(chess, depth) {
 
 function perft_test(position, depth) {
     if (position === null) {
-        position = ParseFen('3k4/3p4/8/K1P4r/8/8/8/8 b - - 0 1');
+        position = ParseFen('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1');
     }
     if (depth === null) {
-        depth = 1;
+        depth = 3;
     }
     let t1 = performance.now();
     /*
@@ -507,7 +507,7 @@ function perft_test(position, depth) {
         console.log(moves[x], perft(1, new_position));
     }
     */
-    let position_count =perft(6, position);
+    let position_count =perft(depth, position);
     let t2 = performance.now();
     /*
 
