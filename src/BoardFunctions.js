@@ -1,5 +1,5 @@
 import {King, Rook, Pawn, Knight, Bishop, Queen } from './Pieces.js';
-import {Position } from './Engine.js'
+import {Position } from './Game.js'
 
 var piece_scores = { Pawn: 1, Knight: 3, Bishop: 3.3, Rook: 5, Queen: 9.5, King: 0 }
 
@@ -218,4 +218,34 @@ function evaluate_material(squares) {
     return (sum_material)
 }
 
-export {ParseFen, coordinate_change, get_king_locations, normal_squares, engine_squares, evaluate_material}
+function initialize_board() {
+    var board = Array(64).fill(null)
+    for (var k = 0; k < 8; k++) {
+        board[k + 8] = new Pawn('black');
+        board[k + 48] = new Pawn('white');
+    };
+
+    var color = 'black';
+    for (var i = 0; i < 2; i++) {
+        if (i === 1) {
+            color = 'white'
+        }
+        board[i * 56] = new Rook(color);
+        board[i * 56 + 7] = new Rook(color);
+        board[i * 56 + 1] = new Knight(color);
+        board[i * 56 + 6] = new Knight(color);
+        board[i * 56 + 2] = new Bishop(color);
+        board[i * 56 + 5] = new Bishop(color);
+        board[i * 56 + 3] = new Queen(color);
+        board[i * 56 + 4] = new King(color);
+    }
+    return board
+}
+
+function initialize_engine_board() {
+    let board = initialize_board();
+    let engine_board = engine_squares(board);
+    return engine_board
+}
+
+export {ParseFen, coordinate_change, get_king_locations, normal_squares, engine_squares, evaluate_material, initialize_board, initialize_engine_board}

@@ -18,6 +18,8 @@
 }
 .board_row {
   font-size:0;
+  margin:0px;
+  height:50px;
 }
 .display {
   display:inline-block;
@@ -52,21 +54,12 @@
   float: left;
 }
 
-.reset_button {
+.button_element {
   cursor: pointer;
   margin:3px;
 
 }
 
-.back_button {
-  cursor: pointer;
-  margin:3px;
-}
-
-.engine_button {
-  cursor: pointer;
-  margin:3px;
-}
 .piece_container {
   position:absolute;
 }

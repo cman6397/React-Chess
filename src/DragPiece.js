@@ -33,6 +33,7 @@ class ReactPiece extends React.Component {
     img.src = this.props.url;
     img.onload = () => this.props.connectDragPreview(img);
   }
+
   render() {
     var url = this.props.url
     const { connectDragSource, isDragging } = this.props;

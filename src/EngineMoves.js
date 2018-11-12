@@ -1,7 +1,7 @@
 /********************************************** Legal Move Generation and Checking for Engine*************************************/
 import { Knight, Bishop, Rook, Queen } from './Pieces.js';
 import {coordinate_change, get_king_locations, normal_squares, engine_squares} from './BoardFunctions.js';
-import { Move } from './Engine.js';
+import { Move } from './Game.js';
 
 /* Return all legal moves given a position */
 function legal_moves(position) {
@@ -679,52 +679,5 @@ function right(distance, location, player) {
     }
 }
 
-/******************************************************** Board Representation Functions  **********************************************/
 
-
-/*This move creation function turns dragged moves from the UI into move objects */
-function create_move(start, end, position, promotion_piece) {
-    let squares = position.squares;
-    let piece = position.squares[start];
-    let en_passant = null;
-    let rook_start = null;
-    let rook_end = null;
-
-    /*For En passant*/
-    if (piece.name === 'Pawn') {
-        /* En Passant One way*/
-        if (Math.abs(start - end) === 9 && squares[end] === null) {
-            if (position.player === 'white') {
-                en_passant = start + 1;
-            }
-            else {
-                en_passant = start - 1;
-            }
-
-        }
-        else if (Math.abs(start - end) === 11 && squares[end] === null) {
-            if (position.player === 'white') {
-                en_passant = start - 1;
-            }
-            else {
-                en_passant = start + 1;
-            }
-        }
-    }
-
-    if (piece.name === 'King') {
-        /* kingside */
-        if ((end - start) === 2) {
-            rook_start = end + 1
-            rook_end = start + 1
-        }
-        else if ((start - end) === 2) {
-            rook_start = end - 2
-            rook_end = start - 1
-        }
-    }
-    return new Move(start, end, en_passant, rook_start, rook_end, promotion_piece)
-}
-
-
-export { legal_moves, is_legal, engine_squares, normal_squares , get_king_locations, create_move, coordinate_change }
+export { legal_moves, is_legal, engine_squares, normal_squares , get_king_locations, coordinate_change }
