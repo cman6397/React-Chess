@@ -33,7 +33,7 @@ King in Check Moves:
 En Passant Pin Exception:
   The En Passant pin exception is an incredibly rare situation where taking En Passant moves two pawns off an attacking direction leaving the king in check.  It occurs when the rook is in line horizontally with the opposing king and there are two pawns inbetween the rook and the king, one white and one black where the kings color pawn can take the other pawn En Passant.  This removes both pawns from the horizontal direction and leaves the king in check.  I implemented a special function for En Passant Pins which is only triggered when the En Passant move is available.  It removes the pawn that can be taken en_passant and calculates pawn pins after removing the pawn.  I only identified this rare situation through rigourous Perft Testing.  
   
-##User Interface 
+## User Interface 
 The user interface is written in React and is contained in the App.js file, the DragPiece and DropSquare files.  The interface is pretty straightforward with a Game class, Board Class, Square Class, and Piece classes. I implemented drag and drop using React-dnd.  Pieces are only rendered for the player whos turn it is to move.  The opposing players pieces are actually just squares with background images as the pieces.  This allows these squares to be treated as drop targets to enable captures.  If pieces are used for both sides then pieces would have to be drag and drop targets which is a little bit less convenient.   
 
 ## The Engine
