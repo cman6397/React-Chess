@@ -41,9 +41,18 @@ All the information needed to identify a given chess position is wrapped in the 
 
   The Engine is simply iterative deepening using Alpha Beta Pruning on the Game tree with respect to a material and checkmate evaluation function.  Each piece is given a score for how valuable it is and checkmates are evaluated with very high scores.  The engine can evaluate about 100,000 positions per second and reaches depths of about 4-5 given one second to search.  I would estimate the current strength of the engine to be about 1000. The engine is still under active development.  I plan to implement a nueral network evaluation function and move ordering which will greatly improve pruning.  I'm hoping to routinely reach depths of 6-8 and exceed a 2000 Elo skill level.  
   
+## Notes (Active Development)
+Training Data: https://www.kaggle.com/c/finding-elo/data
+Papers: 
+-- https://int8.io/chess-position-evaluation-with-convolutional-neural-networks-in-julia/
+-- http://www.ai.rug.nl/~mwiering/GROUP/ARTICLES/ICPRAM_CHESS_DNN_2018.pdf
+  
+  
 ## Testing
 
 The move generation function is tested using about 100 Perft Test positions, which can be found in the Tests.js file.  Perft testing works by comparing the total positions found at given depths with the known number of positions at those depths.  I identified the En Passant Pin Exception using Perft testing and now pass all the perft tests.  
+
+
 
     
   
