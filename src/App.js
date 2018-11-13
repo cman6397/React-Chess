@@ -87,9 +87,8 @@ class Chess extends Component {
 
     let new_position = make_move(position, engine_move.move);
     this.setState({
-      history: history.concat([{position: new_position}]),
-      engine_turn: false
-    });
+        history: history.concat([{position: new_position}]),
+    })
   }
 
   handle_drop(id) {
@@ -138,11 +137,16 @@ class Chess extends Component {
         if (new_moves.length === 0) {
             status = 'Game Over'
         }
-        this.setState({
-          history: history.concat([{position: new_position}]),
-          drag_end: null,
-          status: status,
-        });
+        setTimeout( () => {
+          this.setState({
+            history: history.concat([{position: new_position}]),
+            drag_end: null,
+            status: status,
+          })
+        }, 10);
+        if (new_position.player === 'black') {
+          setTimeout(this.engine_move.bind(this), 20);
+        }
     }
   }
 
