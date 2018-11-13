@@ -173,15 +173,6 @@ function game_test(position) {
 }
 
 
-
-
-
-
-
-
-
-
-
 /* Compare possible move generation to known possible move generation.  */
 function test() {
     //test_position_class();

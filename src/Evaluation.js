@@ -49,7 +49,7 @@ function evolve_weights() {
         }
     }
     /*Normalize new Weights*/
-    for (var key in new_weights) {
+    for (key in new_weights) {
         new_weights[key] = new_weights[key] / max;
     }
     genetic_weights = new_weights;
@@ -61,10 +61,10 @@ function play_game(chess_game) {
     let result = 0;
     while (chess_game.history.length < 100) {
         if (chess_game.position.player === 'white') {
-            alphabeta_result = alphabeta(chess_game.position, 2, -INFINITY, INFINITY, 'base');
+            alphabeta_result = alphabeta(chess_game.position, 1, -INFINITY, INFINITY, 'base');
         }
         else {
-            alphabeta_result = alphabeta(chess_game.position, 2, -INFINITY, INFINITY, 'genetic');
+            alphabeta_result = alphabeta(chess_game.position, 1, -INFINITY, INFINITY, 'genetic');
         }
         score = alphabeta_result.value
         let move = alphabeta_result.move
