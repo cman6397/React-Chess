@@ -2,6 +2,7 @@
 
 ## React Chess
   React Chess is a chess engine built from scratch using javascript on the backend and react for the UI.  
+  https://chrisatkeson.com/Deploy-React-Chess/
   
 ## Objects and Representations
 
