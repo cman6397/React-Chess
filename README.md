@@ -46,6 +46,7 @@ Training Data: https://www.kaggle.com/c/finding-elo/data
 Papers: 
 -- https://int8.io/chess-position-evaluation-with-convolutional-neural-networks-in-julia/
 -- http://www.ai.rug.nl/~mwiering/GROUP/ARTICLES/ICPRAM_CHESS_DNN_2018.pdf
+https://stackoverflow.com/questions/39898696/mlp-in-tensorflow-for-regression-not-converging
   
   
 ## Testing
