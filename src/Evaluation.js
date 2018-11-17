@@ -131,16 +131,16 @@ function alphabeta(position, depth, alpha, beta, evaluation) {
     //Checkmate Stalemate
     if (moves.length === 0) {
         let in_check = false;
-        if (position.player === 'white') {
+        if (!in_check) {
+            return { value: 0, move: null };
+        }
+        else if (position.player === 'white') {
             in_check = is_attacked(position.squares, position.king_locations[0], position.player)[0];
             return { value: -CHECKMATE, move: null };
         }
         else {
             in_check = is_attacked(position.squares, position.king_locations[1], position.player)[0];
             return { value: CHECKMATE, move: null };
-        }
-        if (!in_check) {
-            return { value: 0, move: null };
         }
     }
     if (position.player === 'white') {

@@ -22,7 +22,7 @@ class DropSquare extends React.Component {
         var class_name = this.props.class_name;
         const connectDropTarget = this.props.connectDropTarget;
         return connectDropTarget(
-            <div className={class_name} style={style}> </div>
+            <div className={class_name} style={style} onClick = {() => this.props.handle_click_end()}> </div>
         )
     }
 }

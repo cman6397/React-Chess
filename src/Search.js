@@ -5,14 +5,14 @@ var INFINITY = 10000;
 var CHECKMATE = 9000;
 
 var start_time = null;
-var best_moves = {};
+//var best_moves = {};
 var time_limit = null;
 var depth_searched = null;
 var time_cutoff = false;
 
 function set_variables(max_time) {
     start_time = performance.now();
-    best_moves = {};
+    //best_moves = {};
     time_limit = max_time;
     depth_searched = 0;
     time_cutoff = false;
@@ -95,7 +95,7 @@ function alphabeta_search(position, max_depth, max_time) {
             depth_searched = depth
         }
     }
-    console.log(depth_searched)
+    console.log("depth searched:", depth_searched)
     return value_move;
 }
 

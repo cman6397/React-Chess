@@ -164,20 +164,14 @@ function get_king_locations(squares) {
     return king_locations;
 }
 
-function coordinate_change(location64) {
-    let count = 0;
-    for (var i = 0; i < 12; i++) {
-        for (var y = 0; y < 10; y++) {
-            /*if boundary square*/
-            let coord120 = i * 10 + y;
-            if (!(y === 0 || y === 9 || i === 0 || i === 1 || i === 10 || i === 11)) {
-                if (location64 === count) {
-                    return coord120;
-                }
-                count = count + 1
-            }
-        }
-    }
+function inverse_coordinate_change(sq120) {
+    let sq64 = sq120 - 17 - Math.floor(sq120/10)*2
+    return sq64
+}
+
+function coordinate_change(sq64) {
+    let sq120 = sq64 + 21 + Math.floor(sq64/8)*2
+    return sq120
 }
 
 function set_pawn_states(position) {
@@ -248,4 +242,4 @@ function initialize_engine_board() {
     return engine_board
 }
 
-export {ParseFen, coordinate_change, get_king_locations, normal_squares, engine_squares, evaluate_material, initialize_board, initialize_engine_board}
+export {ParseFen, coordinate_change, inverse_coordinate_change, get_king_locations, normal_squares, engine_squares, evaluate_material, initialize_board, initialize_engine_board}

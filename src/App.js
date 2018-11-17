@@ -10,7 +10,7 @@ import {normal_squares,coordinate_change, ParseFen, initialize_engine_board} fro
 import { make_move, Position, create_move, Game} from './Game';
 import { alphabeta_search} from './Search';
 //import { game_test, perft_test } from './Tests';
-import { play_game, train } from './Evaluation.js';
+import { train } from './Evaluation.js';
 
 class Chess extends Component {
   constructor(props) {
@@ -20,6 +20,7 @@ class Chess extends Component {
       drag_end: null,
       promotion:{class:'hidden',start: null, end: null, player: null},
       status:null,
+      click_start: null
     }
   }
   train() {
@@ -76,7 +77,7 @@ class Chess extends Component {
     //Time in milliseconds
     let search_time = 1000;
     let engine_move = alphabeta_search(position,10,search_time);
-    console.log(engine_move.value)
+    //console.log(engine_move.value)
 
     if (engine_move.move === null) {
         this.setState({
@@ -93,6 +94,29 @@ class Chess extends Component {
 
   handle_drop(id) {
     this.setState({drag_end: id});
+  }
+
+  handle_click_start(id) {
+    let start_square = coordinate_change(id);
+    this.setState({click_start: start_square});
+  }
+
+  handle_click_end(id) {
+    const history = this.state.history.slice();
+    const position = history[history.length - 1].position;
+    const click_start = this.state.click_start;
+
+    let piece = position.squares[click_start];
+    let click_end = coordinate_change(id);
+
+    if ((click_end <= 28 || click_end >= 91) && piece.name === 'Pawn'){
+      let promotion = {class:'promotion_container',start: click_start, end: click_end, player: position.player}
+      this.setState({promotion:promotion})
+      return;
+    }
+    else {
+      this.change_states(history, position, click_start, click_end, null);
+    }
   }
 
   handle_drag_end(id) {
@@ -145,7 +169,7 @@ class Chess extends Component {
           })
         }, 10);
         if (new_position.player === 'black') {
-          setTimeout(this.engine_move.bind(this), 20);
+          setTimeout(this.engine_move.bind(this), 50);
         }
     }
   }
@@ -173,6 +197,8 @@ class Chess extends Component {
           player = {player}
           handle_drop={(id) => this.handle_drop(id)}
           handle_drag_end = {(id) => this.handle_drag_end(id)}
+          handle_click_start = {(id) => this.handle_click_start(id)}
+          handle_click_end = {(id) => this.handle_click_end(id)}
         />
       </div>
       <FenPosition
@@ -202,9 +228,11 @@ class Board extends React.Component {
           key={id} 
           color={color} 
           player = {this.props.player}
+          id = {id}
           handle_drop={() => this.props.handle_drop(id)}
           handle_drag_end = {(id) => this.props.handle_drag_end(id)}
-          id = {id}
+          handle_click_start = {() => this.props.handle_click_start(id)}
+          handle_click_end = {() => this.props.handle_click_end(id)}
         />;
         html_row.push(current_square);
         color = !color
@@ -245,6 +273,7 @@ class Square extends React.Component {
               url={url} 
               id = {this.props.id}
               handle_drag_end = {(id) => this.props.handle_drag_end(id)}
+              handle_click_start = {() => this.props.handle_click_start()}
             /> 
           </div> );
         }
@@ -254,6 +283,7 @@ class Square extends React.Component {
               class_name={class_name} 
               style={style} 
               handle_drop={() => this.props.handle_drop()}
+              handle_click_end = {() => this.props.handle_click_end()}
             /> );
         }
     }
@@ -271,10 +301,6 @@ class Square extends React.Component {
 function Buttons(props) {
   return (
    <div className = 'button_container'>
-      <button  
-      className = "button_element" 
-      onClick={() => props.train()} > Train
-      </button>
       <button 
       className = "button_element" 
       onClick={() => props.reset()} > Reset
