@@ -1,13 +1,16 @@
 import { legal_moves } from "./EngineMoves";
-
+import { initialize_engine_board, rand_32 } from "./BoardFunctions";
 
 var piece_scores = { Pawn: 1, Knight: 3, Bishop: 3.3, Rook: 5, Queen: 9.5, King: 0 };
+var hash_keys = Array(120 * 14).fill(null)
 
 class Game {
-    constructor(position, history, moves) {
+    constructor(position, history, moves, position_key) {
         this.position = position;
         this.history = history;
         this.moves = moves; 
+        this.position_keys = {[position_key]: position};
+        this.position_key = position_key;
     }
     moves() {
         return legal_moves(this.position);
@@ -19,6 +22,11 @@ class Game {
         this.position = new_position;
         this.history = history.concat(new_position);
         this.moves = moves.concat(move);
+    }
+    take_move() {
+        this.history.pop();
+        this.moves.pop();
+        this.position = this.history[this.history.length - 1]
     }
 }
 
@@ -199,4 +207,17 @@ function create_move(start, end, position, promotion_piece) {
     return new Move(start, end, en_passant, rook_start, rook_end, promotion_piece)
 }
 
-export {Move, Position, make_move, create_move, Game}
+function InitHashKeys() {
+    var index = 0;
+	
+
+}
+
+function new_game() {
+    let position = new Position('white', initialize_engine_board(), [95, 25], [1, 1, 1, 1], 0);
+    let history = [position];
+    let moves = [];
+    return new Game(position, history, moves)
+}
+
+export {Move, Position, make_move, create_move, Game, new_game}

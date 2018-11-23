@@ -242,4 +242,11 @@ function initialize_engine_board() {
     return engine_board
 }
 
-export {ParseFen, coordinate_change, inverse_coordinate_change, get_king_locations, normal_squares, engine_squares, evaluate_material, initialize_board, initialize_engine_board}
+function rand_32() {
+
+	return (Math.floor((Math.random()*255)+1) << 23) | (Math.floor((Math.random()*255)+1) << 16)
+		 | (Math.floor((Math.random()*255)+1) << 8) | Math.floor((Math.random()*255)+1);
+
+}
+
+export {ParseFen, coordinate_change, inverse_coordinate_change, get_king_locations, normal_squares, engine_squares, evaluate_material, initialize_board, initialize_engine_board, rand_32}

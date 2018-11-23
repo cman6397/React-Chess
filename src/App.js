@@ -6,9 +6,9 @@ import ReactPiece from './DragPiece';
 import DropSquare from './DropSquare';
 import { Knight, Bishop, Rook, Queen} from './Pieces';
 import { legal_moves, is_legal} from './EngineMoves';
-import {normal_squares,coordinate_change, ParseFen, initialize_engine_board} from './BoardFunctions';
-import { make_move, Position, create_move, Game} from './Game';
-import { alphabeta_search} from './Search';
+import {normal_squares,coordinate_change, ParseFen} from './BoardFunctions';
+import { create_move, Game, new_game} from './Game';
+import { alphabeta_search, game_alphabeta_search} from './Search';
 //import { game_test, perft_test } from './Tests';
 import { train } from './Evaluation.js';
 
@@ -16,7 +16,7 @@ class Chess extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      history: [{ position: new Position('white', initialize_engine_board(), [95, 25], [1, 1, 1, 1], 0) }],
+      game: new_game(),
       drag_end: null,
       promotion:{class:'hidden',start: null, end: null, player: null},
       status:null,
@@ -24,34 +24,25 @@ class Chess extends Component {
     }
   }
   train() {
-    const history = this.state.history.slice();
-    const position = history[history.length - 1].position;
-
+    const game = this.state.game
     //perft_test(position,4);
-    
-    let chess_game = new Game(position, history);
-    train(chess_game);
-    
-
+    train(game);
   };
 
   reset() {
     this.setState({
-      history: [{ position: new Position('white', initialize_engine_board(), [95, 25], [1, 1, 1, 1], 0)}],
+      game: new_game(),
       drag_end: null,
       promotion:{class:'hidden',start: null, end: null, player: null},
       status:null
     });
   }
   back() {
-    const history = this.state.history.slice();
-    if (history.length === 1) {
-      return;
-    }
-    history.pop();
+    const game = this.state.game
+    game.take_move();
 
     this.setState({
-      history: history,
+      game: game,
       status:null
     });
     }
@@ -59,8 +50,9 @@ class Chess extends Component {
   setup_fen(value) {
       let position = ParseFen(value);
       if (position !== 'FEN Error') {
+          let game = new Game(position, [], []);
           this.setState({
-              history: [{ position: position }],
+              game: game,
               drag_end: null,
               promotion: { class: 'hidden', start: null, end: null, player: null },
               status: null
@@ -72,11 +64,11 @@ class Chess extends Component {
   }
 
   engine_move() {
-    const history = this.state.history.slice();
-    const position = history[history.length - 1].position;
+    const game = this.state.game
+    let position = game.position;
     //Time in milliseconds
     let search_time = 1000;
-    let engine_move = alphabeta_search(position,10,search_time);
+    let engine_move = game_alphabeta_search(game,10,search_time);
     //console.log(engine_move.value)
 
     if (engine_move.move === null) {
@@ -85,10 +77,10 @@ class Chess extends Component {
         });
         return;
     }
+    game.make_move(engine_move.move);
 
-    let new_position = make_move(position, engine_move.move);
     this.setState({
-        history: history.concat([{position: new_position}]),
+        game: game,
     })
   }
 
@@ -102,8 +94,8 @@ class Chess extends Component {
   }
 
   handle_click_end(id) {
-    const history = this.state.history.slice();
-    const position = history[history.length - 1].position;
+    const game = this.state.game;
+    const position = game.position;
     const click_start = this.state.click_start;
 
     let piece = position.squares[click_start];
@@ -115,13 +107,13 @@ class Chess extends Component {
       return;
     }
     else {
-      this.change_states(history, position, click_start, click_end, null);
+      this.change_states(game, click_start, click_end, null);
     }
   }
 
   handle_drag_end(id) {
-    const history = this.state.history.slice();
-    const position = history[history.length - 1].position;
+    const game = this.state.game;
+    const position = game.position;
 
     let drag_start = coordinate_change(id);
     let drag_end = coordinate_change(this.state.drag_end);
@@ -132,51 +124,52 @@ class Chess extends Component {
       this.setState({promotion:promotion})
       return;
     }
-    this.change_states(history, position, drag_start, drag_end, null);
+    this.change_states(game, drag_start, drag_end, null);
   };
 
   handle_promotion(piece) {
-    const history = this.state.history.slice();
-    const position = history[history.length - 1].position;
+    const game = this.state.game;
+    const position = game.position;
     const promotion = this.state.promotion;
 
     let start = promotion['start'];
     let end = promotion['end'];
 
-    this.change_states(history, position, start, end, piece)
+    this.change_states(game, start, end, piece)
 
     this.setState({
       promotion:{class:'hidden',start: null, end: null, player: null}
     });
   }
 
-  change_states(history, position, start, end, promotion_piece) {
-      let possible_moves = legal_moves(position);
-      let move = create_move(start, end, position, promotion_piece);
+  change_states(game, start, end, promotion_piece) {
+      let possible_moves = legal_moves(game.position);
+      let move = create_move(start, end, game.position, promotion_piece);
       let status = null;
+
       if (is_legal(move, possible_moves)) {
-        let new_position = make_move(position, move);
-        let new_moves = legal_moves(new_position);
+        game.make_move(move);
+        let new_moves = legal_moves(game.position);
     
         if (new_moves.length === 0) {
             status = 'Game Over'
         }
         setTimeout( () => {
           this.setState({
-            history: history.concat([{position: new_position}]),
+            game: game,
             drag_end: null,
             status: status,
           })
         }, 10);
-        if (new_position.player === 'black') {
+        if (game.position.player === 'black') {
           setTimeout(this.engine_move.bind(this), 50);
         }
     }
   }
 
     render() {
-    let history= this.state.history;
-    let current_position = history[history.length - 1].position
+    const game = this.state.game;
+    let current_position = game.position
     let current_squares = normal_squares(current_position.squares);
     let player = current_position.player;
     let promotion_class = this.state.promotion['class'];
