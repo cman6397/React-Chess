@@ -9,6 +9,7 @@ var start_time = null;
 var time_limit = null;
 var depth_searched = null;
 var time_cutoff = false;
+var total_positions = null;
 
 function set_variables(max_time) {
     start_time = performance.now();
@@ -16,13 +17,15 @@ function set_variables(max_time) {
     time_limit = max_time;
     depth_searched = 0;
     time_cutoff = false;
+    total_positions = 0;
 }
 
 function alphabeta(position, depth, alpha, beta) {
     if (depth === 0) {
-        return { value: position.material_balance, move: null};
+        return { value: score_position(position), move: null};
     }
     let moves = legal_moves(position);
+    total_positions = total_positions + moves.length;
     //Checkmate
     if (moves.length === 0) {
         if (position.player === 'white') {
@@ -86,7 +89,7 @@ function alphabeta(position, depth, alpha, beta) {
 function game_alphabeta(game, depth, alpha, beta) {
     let position = game.position;
     if (depth === 0) {
-        return { value: position.material_balance, move: null};
+        return { value: score_position(position), move: null};
     }
     let moves = legal_moves(position);
     //Checkmate
@@ -163,7 +166,7 @@ function alphabeta_search(position, max_depth, max_time) {
             depth_searched = depth
         }
     }
-    console.log("depth searched:", depth_searched)
+    console.log("depth searched:", depth_searched, "total positions:", total_positions)
     return value_move;
 }
 
@@ -202,6 +205,11 @@ function breadth_search(depth, positions) {
         }
         return breadth_search(depth - 1, new_positions);
     }
+}
+
+function score_position(position) {
+    let score = position.material_balance;
+    return score;
 }
 
 export {alphabeta_search, alphabeta, breadth_search, game_alphabeta_search}

@@ -8,7 +8,7 @@ import { Knight, Bishop, Rook, Queen} from './Pieces';
 import { legal_moves, is_legal} from './EngineMoves';
 import {normal_squares,coordinate_change, ParseFen} from './BoardFunctions';
 import { create_move, Game, new_game} from './Game';
-import { alphabeta_search, game_alphabeta_search} from './Search';
+import { alphabeta_search } from './Search';
 //import { game_test, perft_test } from './Tests';
 import { train } from './Evaluation.js';
 
@@ -68,7 +68,7 @@ class Chess extends Component {
     let position = game.position;
     //Time in milliseconds
     let search_time = 1000;
-    let engine_move = game_alphabeta_search(game,10,search_time);
+    let engine_move = alphabeta_search(position,10,search_time);
     //console.log(engine_move.value)
 
     if (engine_move.move === null) {
@@ -129,7 +129,6 @@ class Chess extends Component {
 
   handle_promotion(piece) {
     const game = this.state.game;
-    const position = game.position;
     const promotion = this.state.promotion;
 
     let start = promotion['start'];

@@ -21,7 +21,7 @@ function legal_moves(position) {
 
     /* Only King can move in double check */
     if (attacking_pieces.length > 1) {
-        return king_moves(squares, king_location, player, castle_state);
+        return king_moves(squares, king_location, player, castle_state, in_check);
     }
     var legal_moves = [];
 
